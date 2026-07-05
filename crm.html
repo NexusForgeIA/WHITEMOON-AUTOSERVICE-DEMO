@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AutoService CRM · Panel de Gestión</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@200;300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#08080d;--bg2:#0e0e16;--bg3:#13131e;--card:#111118;
+  --p:#7c4dff;--p2:#9d70ff;--g:#00d4aa;
+  --text:#f0f0f5;--muted:#8888a0;
+  --border:rgba(124,77,255,0.18);--border2:rgba(124,77,255,0.08);
+  --gold:#f5c842;--red:#ff4757;
+}
+html,body{height:100%;font-family:'Sora',sans-serif;background:var(--bg);color:var(--text);overflow:hidden}
+
+/* LOGIN */
+.login-wrap{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:999}
+.login-wrap.hidden{display:none}
+.login-box{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:48px 40px;width:360px;text-align:center}
+.login-logo{font-size:1.1rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text);margin-bottom:6px}
+.login-logo em{font-style:normal;color:var(--p)}
+.login-sub{font-size:.72rem;color:var(--muted);margin-bottom:32px}
+.login-field{margin-bottom:14px;text-align:left}
+.login-field label{font-size:.62rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px}
+.login-field input{width:100%;background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:8px;padding:12px 14px;font-size:.82rem;color:var(--text);font-family:'Sora',sans-serif;outline:none;transition:border-color .2s}
+.login-field input:focus{border-color:var(--p)}
+.login-btn{width:100%;background:var(--p);color:#fff;border:none;border-radius:8px;padding:13px;font-size:.78rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;font-family:'Sora',sans-serif;margin-top:8px;transition:background .2s}
+.login-btn:hover{background:var(--p2)}
+.login-err{font-size:.7rem;color:var(--red);margin-top:10px;display:none}
+
+/* LAYOUT */
+.app{display:flex;height:100vh;overflow:hidden}
+.app.hidden{display:none}
+
+/* SIDEBAR */
+.sidebar{width:180px;background:var(--bg2);border-right:1px solid var(--border2);display:flex;flex-direction:column;flex-shrink:0}
+.sidebar-logo{padding:20px 16px 16px;border-bottom:1px solid var(--border2)}
+.sidebar-logo-text{font-size:.82rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text)}
+.sidebar-logo-text em{font-style:normal;color:var(--p)}
+.sidebar-logo-sub{font-size:.58rem;color:var(--muted);margin-top:2px}
+.sidebar-nav{flex:1;padding:12px 8px;display:flex;flex-direction:column;gap:2px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;cursor:pointer;transition:all .2s;font-size:.72rem;font-weight:500;color:var(--muted)}
+.nav-item:hover{background:rgba(124,77,255,.06);color:var(--text)}
+.nav-item.active{background:rgba(124,77,255,.12);color:var(--p)}
+.nav-item svg{width:16px;height:16px;flex-shrink:0}
+.sidebar-footer{padding:12px;border-top:1px solid var(--border2)}
+.sidebar-user{display:flex;align-items:center;gap:8px}
+.user-av{width:30px;height:30px;background:var(--p);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.62rem;font-weight:700;color:#fff}
+.user-name{font-size:.68rem;font-weight:500;color:var(--text)}
+.user-role{font-size:.58rem;color:var(--muted)}
+.logout-btn{background:none;border:none;color:var(--muted);cursor:pointer;margin-left:auto;font-size:.7rem;transition:color .2s}
+.logout-btn:hover{color:var(--red)}
+
+/* MAIN */
+.main{flex:1;overflow:hidden;display:flex;flex-direction:column}
+.topbar{height:56px;background:var(--bg2);border-bottom:1px solid var(--border2);padding:0 24px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.topbar-title{font-size:.88rem;font-weight:600;color:var(--text)}
+.topbar-actions{display:flex;gap:10px;align-items:center}
+.btn-sm{background:var(--p);color:#fff;border:none;border-radius:6px;padding:8px 16px;font-size:.66rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;font-family:'Sora',sans-serif;transition:background .2s}
+.btn-sm:hover{background:var(--p2)}
+.btn-sm-ghost{background:none;color:var(--muted);border:1px solid var(--border2);border-radius:6px;padding:8px 14px;font-size:.66rem;font-weight:600;cursor:pointer;font-family:'Sora',sans-serif;transition:all .2s}
+.btn-sm-ghost:hover{border-color:var(--p);color:var(--p)}
+.content{flex:1;overflow-y:auto;padding:24px}
+.content::-webkit-scrollbar{width:4px}
+.content::-webkit-scrollbar-thumb{background:var(--border)}
+
+/* VIEWS */
+.view{display:none}
+.view.active{display:block}
+
+/* KPIs */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+.kpi-card{background:var(--card);border:1px solid var(--border2);border-radius:12px;padding:20px}
+.kpi-label{font-size:.6rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.kpi-val{font-size:2rem;font-weight:700;color:var(--text);line-height:1;letter-spacing:-.02em}
+.kpi-val.green{color:var(--g)}.kpi-val.purple{color:var(--p)}.kpi-val.gold{color:var(--gold)}.kpi-val.red{color:var(--red)}
+.kpi-change{font-size:.62rem;color:var(--muted);margin-top:4px}
+.kpi-change.up{color:var(--g)}.kpi-change.down{color:var(--red)}
+
+/* TABLA */
+.table-wrap{background:var(--card);border:1px solid var(--border2);border-radius:12px;overflow:hidden;margin-bottom:16px}
+.table-header{padding:16px 20px;border-bottom:1px solid var(--border2);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.table-title{font-size:.8rem;font-weight:600;color:var(--text)}
+.table-count{font-size:.65rem;color:var(--muted)}
+table{width:100%;border-collapse:collapse}
+th{font-size:.58rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);padding:12px 16px;text-align:left;border-bottom:1px solid var(--border2);background:rgba(124,77,255,.02)}
+td{padding:13px 16px;border-bottom:1px solid rgba(124,77,255,.04);font-size:.74rem;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(124,77,255,.03)}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:.58rem;font-weight:700;letter-spacing:.04em}
+.badge-nuevo{background:rgba(255,71,87,.1);color:var(--red);border:1px solid rgba(255,71,87,.2)}
+.badge-asignado{background:rgba(124,77,255,.1);color:var(--p);border:1px solid var(--border)}
+.badge-progreso{background:rgba(245,200,66,.1);color:var(--gold);border:1px solid rgba(245,200,66,.2)}
+.badge-cerrado{background:rgba(0,212,170,.1);color:var(--g);border:1px solid rgba(0,212,170,.2)}
+.urgencia-alta{color:var(--red);font-weight:600}
+.urgencia-normal{color:var(--gold)}
+.urgencia-baja{color:var(--g)}
+.action-btn{background:none;border:1px solid var(--border2);border-radius:6px;padding:4px 10px;font-size:.58rem;font-weight:600;color:var(--muted);cursor:pointer;font-family:'Sora',sans-serif;transition:all .2s;margin-right:4px}
+.action-btn:hover{border-color:var(--p);color:var(--p)}
+.action-btn.green:hover{border-color:var(--g);color:var(--g)}
+.action-btn.red-h:hover{border-color:var(--red);color:var(--red)}
+
+/* GRID */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+
+/* KANBAN */
+.kanban{display:flex;gap:14px;overflow-x:auto;padding-bottom:8px}
+.kanban::-webkit-scrollbar{height:4px}
+.kanban::-webkit-scrollbar-thumb{background:var(--border)}
+.kanban-col{min-width:220px;flex-shrink:0}
+.kanban-col-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.kanban-col-title{font-size:.66rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.kanban-col-count{background:var(--border2);border-radius:20px;padding:2px 8px;font-size:.58rem;font-weight:600;color:var(--muted)}
+.kanban-card{background:var(--card);border:1px solid var(--border2);border-radius:10px;padding:14px;margin-bottom:8px;cursor:pointer;transition:all .2s}
+.kanban-card:hover{border-color:var(--p);transform:translateY(-1px)}
+.kanban-card-title{font-size:.74rem;font-weight:600;color:var(--text);margin-bottom:4px}
+.kanban-card-sub{font-size:.64rem;color:var(--muted);margin-bottom:8px}
+.kanban-card-footer{display:flex;align-items:center;justify-content:space-between}
+.kanban-card-tecnico{font-size:.6rem;color:var(--p)}
+
+/* TECNICO CARDS */
+.tecnicos-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px}
+.tecnico-card{background:var(--card);border:1px solid var(--border2);border-radius:14px;padding:24px;position:relative;transition:border-color .2s}
+.tecnico-card:hover{border-color:var(--p)}
+.tecnico-card-header{display:flex;align-items:center;gap:14px;margin-bottom:16px}
+.tecnico-av{width:48px;height:48px;border-radius:50%;background:var(--p);display:flex;align-items:center;justify-content:center;font-size:1.1rem;font-weight:700;color:#fff;flex-shrink:0}
+.tecnico-name{font-size:.88rem;font-weight:600;color:var(--text)}
+.tecnico-esp{font-size:.68rem;color:var(--muted);margin-top:2px}
+.tecnico-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tecnico-stat{background:rgba(124,77,255,.05);border:1px solid var(--border2);border-radius:8px;padding:10px;text-align:center}
+.tecnico-stat-n{font-size:1.3rem;font-weight:700;color:var(--p);line-height:1}
+.tecnico-stat-l{font-size:.58rem;color:var(--muted);margin-top:3px;text-transform:uppercase;letter-spacing:.08em}
+.tecnico-actions{margin-top:14px;display:flex;gap:8px}
+.tecnico-telegram{font-size:.6rem;color:var(--g);display:flex;align-items:center;gap:5px;margin-top:10px}
+.tecnico-telegram::before{content:'';width:6px;height:6px;background:var(--g);border-radius:50%;animation:blink 1.5s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+
+/* FICHA CLIENTE */
+.ficha-header{background:var(--card);border:1px solid var(--border2);border-radius:14px;padding:24px;margin-bottom:16px;display:flex;align-items:center;gap:20px}
+.ficha-av{width:56px;height:56px;border-radius:50%;background:var(--p);display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:700;color:#fff;flex-shrink:0}
+.ficha-name{font-size:1.2rem;font-weight:700;color:var(--text);margin-bottom:4px}
+.ficha-meta{font-size:.72rem;color:var(--muted);display:flex;gap:16px;flex-wrap:wrap}
+.ficha-meta span{display:flex;align-items:center;gap:5px}
+.ficha-stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.ficha-stat{background:var(--card);border:1px solid var(--border2);border-radius:10px;padding:16px;text-align:center}
+.ficha-stat-n{font-size:1.6rem;font-weight:700;color:var(--p);line-height:1}
+.ficha-stat-l{font-size:.58rem;color:var(--muted);margin-top:4px;text-transform:uppercase;letter-spacing:.08em}
+.timeline{background:var(--card);border:1px solid var(--border2);border-radius:12px;overflow:hidden}
+.timeline-header{padding:16px 20px;border-bottom:1px solid var(--border2)}
+.timeline-item{padding:16px 20px;border-bottom:1px solid rgba(124,77,255,.04);display:flex;gap:16px;align-items:flex-start}
+.timeline-item:last-child{border-bottom:none}
+.timeline-dot{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:.7rem;font-weight:700;color:#fff;margin-top:2px}
+.timeline-dot.cerrado{background:var(--g)}
+.timeline-dot.asignado{background:var(--p)}
+.timeline-dot.nuevo{background:var(--red)}
+.timeline-content{flex:1}
+.timeline-title{font-size:.8rem;font-weight:600;color:var(--text);margin-bottom:3px}
+.timeline-meta{font-size:.66rem;color:var(--muted);display:flex;gap:12px;flex-wrap:wrap}
+.timeline-meta span{display:flex;align-items:center;gap:4px}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:500;display:none;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:32px;width:500px;max-height:85vh;overflow-y:auto}
+.modal::-webkit-scrollbar{width:3px}
+.modal::-webkit-scrollbar-thumb{background:var(--border)}
+.modal-title{font-size:1rem;font-weight:600;margin-bottom:20px;color:var(--text)}
+.modal-field{margin-bottom:14px}
+.modal-field label{font-size:.62rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px}
+.modal-field input,.modal-field select,.modal-field textarea{width:100%;background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:8px;padding:10px 14px;font-size:.8rem;color:var(--text);font-family:'Sora',sans-serif;outline:none;transition:border-color .2s}
+.modal-field input:focus,.modal-field select:focus{border-color:var(--p)}
+.modal-field select option{background:var(--bg2);color:var(--text)}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}
+.info-row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border2);font-size:.78rem}
+.info-row:last-child{border-bottom:none}
+.info-label{color:var(--muted);font-size:.68rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase}
+.info-val{color:var(--text);font-weight:500}
+.modal-section{font-size:.64rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:20px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--border2)}
+.notif-box{background:rgba(0,212,170,.06);border:1px solid rgba(0,212,170,.15);border-radius:10px;padding:14px;margin-top:16px;font-size:.74rem;color:var(--g);line-height:1.6}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--g);color:#000;border-radius:8px;padding:12px 20px;font-size:.76rem;font-weight:600;z-index:999;transform:translateY(80px);opacity:0;transition:all .3s}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.error{background:var(--red);color:#fff}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-wrap" id="loginWrap">
+  <div class="login-box">
+    <div class="login-logo">AUTO<em>SERVICE</em> CRM</div>
+    <div class="login-sub">Panel de gestión · Demo WhiteMoon</div>
+    <div class="login-field"><label>Usuario</label><input type="text" id="loginUser" placeholder="admin" autocomplete="off"></div>
+    <div class="login-field"><label>Contraseña</label><input type="password" id="loginPass" placeholder="••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
+    <button class="login-btn" onclick="doLogin()">Entrar al panel</button>
+    <div class="login-err" id="loginErr">Usuario o contraseña incorrectos</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div class="app hidden" id="app">
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-text">AUTO<em>SERVICE</em></div>
+      <div class="sidebar-logo-sub">CRM · Demo WhiteMoon</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-item active" onclick="setView('dashboard',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Dashboard
+      </div>
+      <div class="nav-item" onclick="setView('tickets',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>
+        Tickets
+      </div>
+      <div class="nav-item" onclick="setView('kanban',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="5" height="18" rx="1"/><rect x="10" y="3" width="5" height="12" rx="1"/><rect x="17" y="3" width="4" height="15" rx="1"/></svg>
+        Kanban
+      </div>
+      <div class="nav-item" onclick="setView('clientes',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Clientes
+      </div>
+      <div class="nav-item" onclick="setView('tecnicos',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+        Técnicos
+      </div>
+      <div class="nav-item" onclick="setView('postventa',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        Postventa
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="user-av">AD</div>
+        <div><div class="user-name">Admin</div><div class="user-role">Responsable</div></div>
+        <button class="logout-btn" onclick="doLogout()">Salir</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title" id="topbarTitle">Dashboard</div>
+      <div class="topbar-actions">
+        <button class="btn-sm-ghost" id="topbarSecBtn" onclick="topbarSecAction()" style="display:none"></button>
+        <button class="btn-sm" id="topbarPrimBtn" onclick="topbarPrimAction()">+ Nuevo ticket</button>
+      </div>
+    </div>
+    <div class="content" id="mainContent">
+
+      <!-- DASHBOARD -->
+      <div class="view active" id="view-dashboard">
+        <div class="kpi-grid">
+          <div class="kpi-card"><div class="kpi-label">Tickets hoy</div><div class="kpi-val purple" id="kpiHoy">8</div><div class="kpi-change up">+3 vs ayer</div></div>
+          <div class="kpi-card"><div class="kpi-label">Tiempo respuesta</div><div class="kpi-val green">&lt;2'</div><div class="kpi-change up">Objetivo cumplido</div></div>
+          <div class="kpi-card"><div class="kpi-label">Pendientes</div><div class="kpi-val red" id="kpiPend">2</div><div class="kpi-change down">Sin asignar</div></div>
+          <div class="kpi-card"><div class="kpi-label">Valoración media</div><div class="kpi-val gold">4.8</div><div class="kpi-change up">+0.2 este mes</div></div>
+        </div>
+        <div class="grid2">
+          <div class="table-wrap">
+            <div class="table-header"><div class="table-title">Últimos avisos</div><div class="table-count" id="lastCount">8 tickets</div></div>
+            <table><thead><tr><th>Cliente</th><th>Avería</th><th>Estado</th></tr></thead>
+            <tbody id="dashTickets"></tbody></table>
+          </div>
+          <div class="table-wrap">
+            <div class="table-header"><div class="table-title">Técnicos activos</div></div>
+            <table><thead><tr><th>Técnico</th><th>Tickets</th><th>Estado</th></tr></thead>
+            <tbody id="dashTecnicos"></tbody></table>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <div class="table-header"><div class="table-title">Rendimiento semanal</div><div class="table-count">tickets cerrados</div></div>
+          <div style="padding:20px;display:flex;align-items:flex-end;gap:8px;height:120px">
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><div style="flex:.4;width:100%;background:rgba(124,77,255,.2);border-radius:4px 4px 0 0"></div><span style="font-size:.58rem;color:var(--muted)">Lun</span></div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><div style="flex:.6;width:100%;background:rgba(124,77,255,.3);border-radius:4px 4px 0 0"></div><span style="font-size:.58rem;color:var(--muted)">Mar</span></div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><div style="flex:.8;width:100%;background:rgba(124,77,255,.5);border-radius:4px 4px 0 0"></div><span style="font-size:.58rem;color:var(--muted)">Mié</span></div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><div style="flex:1;width:100%;background:var(--p);border-radius:4px 4px 0 0"></div><span style="font-size:.58rem;color:var(--muted)">Jue</span></div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><div style="flex:.7;width:100%;background:rgba(124,77,255,.35);border-radius:4px 4px 0 0"></div><span style="font-size:.58rem;color:var(--muted)">Vie</span></div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><div style="flex:.3;width:100%;background:rgba(124,77,255,.2);border-radius:4px 4px 0 0"></div><span style="font-size:.58rem;color:var(--muted)">Sáb</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TICKETS -->
+      <div class="view" id="view-tickets">
+        <div class="table-wrap">
+          <div class="table-header">
+            <div class="table-title">Todos los tickets</div>
+            <select id="filterEstado" onchange="filterTickets()" style="background:var(--bg2);border:1px solid var(--border2);border-radius:6px;padding:6px 10px;font-size:.68rem;color:var(--text);font-family:'Sora',sans-serif;outline:none">
+              <option value="">Todos</option>
+              <option value="Nuevo">Nuevos</option>
+              <option value="Asignado">Asignados</option>
+              <option value="En progreso">En progreso</option>
+              <option value="Cerrado">Cerrados</option>
+            </select>
+          </div>
+          <table><thead><tr><th>#</th><th>Cliente</th><th>Teléfono</th><th>Avería</th><th>Zona</th><th>Urgencia</th><th>Estado</th><th>Técnico</th><th>Acciones</th></tr></thead>
+          <tbody id="ticketsBody"></tbody></table>
+        </div>
+      </div>
+
+      <!-- KANBAN -->
+      <div class="view" id="view-kanban">
+        <div class="kanban" id="kanbanBoard"></div>
+      </div>
+
+      <!-- CLIENTES -->
+      <div class="view" id="view-clientes">
+        <div class="table-wrap">
+          <div class="table-header"><div class="table-title">Todos los clientes</div><div class="table-count" id="clientesCount"></div></div>
+          <table><thead><tr><th>Cliente</th><th>Teléfono</th><th>Tickets</th><th>Último servicio</th><th>Estado último</th><th>Total trabajos</th><th>Acciones</th></tr></thead>
+          <tbody id="clientesBody"></tbody></table>
+        </div>
+      </div>
+
+      <!-- FICHA CLIENTE -->
+      <div class="view" id="view-ficha-cliente">
+        <div style="margin-bottom:12px">
+          <button class="action-btn" onclick="setView('clientes',document.querySelector('[onclick*=clientes]'))">&larr; Volver a clientes</button>
+        </div>
+        <div class="ficha-header">
+          <div class="ficha-av" id="fichaAv">MG</div>
+          <div>
+            <div class="ficha-name" id="fichaNombre">María García</div>
+            <div class="ficha-meta">
+              <span id="fichaTel">📞 612 345 678</span>
+              <span id="fichaZona">📍 Madrid centro</span>
+              <span id="fichaCliente">Cliente desde 05/07/2026</span>
+            </div>
+          </div>
+        </div>
+        <div class="ficha-stat-row">
+          <div class="ficha-stat"><div class="ficha-stat-n" id="fsTotalTrabajos">0</div><div class="ficha-stat-l">Trabajos</div></div>
+          <div class="ficha-stat"><div class="ficha-stat-n" id="fsCerrados">0</div><div class="ficha-stat-l">Cerrados</div></div>
+          <div class="ficha-stat"><div class="ficha-stat-n" id="fsValoracion">—</div><div class="ficha-stat-l">Valoración</div></div>
+          <div class="ficha-stat"><div class="ficha-stat-n" id="fsUltimo">—</div><div class="ficha-stat-l">Último trabajo</div></div>
+        </div>
+        <div class="timeline" id="fichaTimeline">
+          <div class="table-header"><div class="table-title">Historial de trabajos</div></div>
+        </div>
+      </div>
+
+      <!-- TÉCNICOS -->
+      <div class="view" id="view-tecnicos">
+        <div class="kpi-grid">
+          <div class="kpi-card"><div class="kpi-label">Total técnicos</div><div class="kpi-val purple" id="kpiTotalTec">4</div></div>
+          <div class="kpi-card"><div class="kpi-label">Ocupados</div><div class="kpi-val gold" id="kpiOcupados">3</div></div>
+          <div class="kpi-card"><div class="kpi-label">Libres</div><div class="kpi-val green" id="kpiLibres">1</div></div>
+          <div class="kpi-card"><div class="kpi-label">Tickets activos</div><div class="kpi-val purple" id="kpiActivos">7</div></div>
+        </div>
+        <div class="tecnicos-grid" id="tecnicosGrid"></div>
+      </div>
+
+      <!-- POSTVENTA -->
+      <div class="view" id="view-postventa">
+        <div class="kpi-grid">
+          <div class="kpi-card"><div class="kpi-label">Pendientes envío</div><div class="kpi-val red">5</div><div class="kpi-change">7 días tras cierre</div></div>
+          <div class="kpi-card"><div class="kpi-label">Enviadas este mes</div><div class="kpi-val purple">23</div></div>
+          <div class="kpi-card"><div class="kpi-label">Valoración media</div><div class="kpi-val gold">4.8 ★</div></div>
+          <div class="kpi-card"><div class="kpi-label">Reseñas Google</div><div class="kpi-val green">11</div><div class="kpi-change up">Este mes</div></div>
+        </div>
+        <div class="table-wrap">
+          <div class="table-header"><div class="table-title">Historial postventa</div></div>
+          <table><thead><tr><th>Cliente</th><th>Avería</th><th>Fecha cierre</th><th>Valoración</th><th>Comentario</th><th>Acción</th></tr></thead>
+          <tbody>
+            <tr><td>María García</td><td>Calefacción</td><td>28/06/2026</td><td><span style="color:var(--gold)">★★★★★ 5</span></td><td>"Rapidísimos, muy profesionales"</td><td><span class="badge badge-cerrado">Reseña solicitada</span></td></tr>
+            <tr><td>Pedro Sánchez</td><td>Lavadora</td><td>27/06/2026</td><td><span style="color:var(--gold)">★★★★ 4</span></td><td>"Bien, aunque tardaron un poco"</td><td><span class="badge badge-cerrado">Reseña solicitada</span></td></tr>
+            <tr><td>Carmen López</td><td>Electricidad</td><td>25/06/2026</td><td><span style="color:var(--red)">★★ 2</span></td><td>"El problema volvió al día siguiente"</td><td><span class="badge badge-nuevo">Escalado</span></td></tr>
+            <tr><td>Roberto Díaz</td><td>Fontanería</td><td>24/06/2026</td><td><span style="color:var(--gold)">★★★★★ 5</span></td><td>"Excelente servicio"</td><td><span class="badge badge-cerrado">Reseña solicitada</span></td></tr>
+            <tr><td>Ana Martínez</td><td>Climatización</td><td>22/06/2026</td><td>—</td><td>Sin respuesta</td><td><span class="badge badge-asignado">2º intento</span></td></tr>
+          </tbody></table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- MODAL NUEVO TICKET -->
+<div class="modal-overlay" id="modalNew">
+  <div class="modal">
+    <div class="modal-title">Nuevo ticket</div>
+    <div class="modal-section">Datos del cliente</div>
+    <div class="modal-field"><label>Nombre</label><input type="text" id="nNombre" placeholder="Nombre completo"></div>
+    <div class="modal-field"><label>Teléfono</label><input type="text" id="nTel" placeholder="+34 600 000 000"></div>
+    <div class="modal-section">Datos del aviso</div>
+    <div class="modal-field"><label>Tipo de avería</label>
+      <select id="nTipo"><option>Calefacción / Climatización</option><option>Fontanería</option><option>Electricidad</option><option>Electrodoméstico</option><option>Otro</option></select>
+    </div>
+    <div class="modal-field"><label>Zona</label>
+      <select id="nZona"><option>Madrid centro</option><option>Norte Madrid</option><option>Sur Madrid</option><option>Este Madrid</option><option>Oeste Madrid</option></select>
+    </div>
+    <div class="modal-field"><label>Urgencia</label>
+      <select id="nUrgencia"><option>Urgente (hoy)</option><option>Normal (esta semana)</option><option>Programado</option></select>
+    </div>
+    <div class="modal-field"><label>Técnico asignado</label>
+      <select id="nTecnico"><option value="">Sin asignar</option></select>
+    </div>
+    <div class="notif-box" id="notifBoxNew" style="display:none">
+      Telegram notificará automáticamente al técnico asignado con todos los datos del aviso.
+    </div>
+    <div class="modal-actions">
+      <button class="btn-sm-ghost" onclick="closeModal('modalNew')">Cancelar</button>
+      <button class="btn-sm" onclick="addTicket()">Crear ticket</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL VER TICKET -->
+<div class="modal-overlay" id="modalView">
+  <div class="modal">
+    <div class="modal-title" id="mvTitle">Ticket</div>
+    <div id="mvBody"></div>
+    <div class="modal-section">Reasignar técnico</div>
+    <div class="modal-field">
+      <select id="mvTecnico"><option value="">Sin asignar</option></select>
+    </div>
+    <div class="notif-box">
+      Al guardar, el técnico seleccionado recibirá una notificación por Telegram con los datos del aviso.
+    </div>
+    <div class="modal-actions">
+      <button class="btn-sm-ghost" onclick="closeModal('modalView')">Cancelar</button>
+      <button class="btn-sm red-h" style="background:var(--g);color:#000" onclick="saveTicketChanges()">Guardar y notificar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL NUEVO TÉCNICO -->
+<div class="modal-overlay" id="modalNuevoTecnico">
+  <div class="modal">
+    <div class="modal-title">Nuevo técnico</div>
+    <div class="modal-field"><label>Nombre completo</label><input type="text" id="tNombre" placeholder="Nombre y apellido"></div>
+    <div class="modal-field"><label>Especialidad</label>
+      <select id="tEsp"><option>Calefacción / Climatización</option><option>Fontanería</option><option>Electricidad</option><option>Electrodomésticos</option><option>General</option></select>
+    </div>
+    <div class="modal-field"><label>Zona</label>
+      <select id="tZona"><option>Madrid centro</option><option>Norte Madrid</option><option>Sur Madrid</option><option>Este Madrid</option><option>Oeste Madrid</option></select>
+    </div>
+    <div class="modal-field"><label>Teléfono</label><input type="text" id="tTel" placeholder="+34 600 000 000"></div>
+    <div class="modal-field"><label>Telegram Chat ID (para notificaciones)</label><input type="text" id="tTelegram" placeholder="861432965"></div>
+    <div class="notif-box">
+      El técnico recibirá notificaciones automáticas en Telegram cuando se le asigne un ticket.
+    </div>
+    <div class="modal-actions">
+      <button class="btn-sm-ghost" onclick="closeModal('modalNuevoTecnico')">Cancelar</button>
+      <button class="btn-sm" onclick="addTecnico()">Añadir técnico</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── DATA ───────────────────────────────────────────────
+var tecnicos=[
+  {id:1,nombre:'Carlos Ramos',iniciales:'CR',especialidad:'Calefacción / Climatización',zona:'Madrid centro',tel:'611 111 111',telegram:'861432001',tickets_activos:3,cerrados_hoy:2},
+  {id:2,nombre:'Luis Moreno',iniciales:'LM',especialidad:'Fontanería / Electricidad',zona:'Norte Madrid',tel:'622 222 222',telegram:'861432002',tickets_activos:2,cerrados_hoy:3},
+  {id:3,nombre:'Miguel Torres',iniciales:'MT',especialidad:'Electrodomésticos',zona:'Sur Madrid',tel:'633 333 333',telegram:'861432003',tickets_activos:2,cerrados_hoy:1},
+  {id:4,nombre:'Raúl Pérez',iniciales:'RP',especialidad:'General',zona:'Este Madrid',tel:'644 444 444',telegram:'861432004',tickets_activos:0,cerrados_hoy:4},
+];
+
+var tickets=[
+  {id:1,nombre:'María García',tel:'612 345 678',tipo:'Calefacción sin calor',zona:'Madrid centro',urgencia:'Urgente',estado:'Asignado',tecnico_id:1,created:'05/07/2026 09:12'},
+  {id:2,nombre:'Juan López',tel:'623 456 789',tipo:'Fuga de agua cocina',zona:'Norte Madrid',urgencia:'Urgente',estado:'Nuevo',tecnico_id:0,created:'05/07/2026 10:34'},
+  {id:3,nombre:'Ana Martínez',tel:'634 567 890',tipo:'Aire acondicionado',zona:'Sur Madrid',urgencia:'Normal',estado:'En progreso',tecnico_id:2,created:'04/07/2026 16:20'},
+  {id:4,nombre:'Pedro Sánchez',tel:'645 678 901',tipo:'Lavadora no centrifuga',zona:'Este Madrid',urgencia:'Programado',estado:'Cerrado',tecnico_id:1,created:'03/07/2026 11:05'},
+  {id:5,nombre:'Laura Fernández',tel:'656 789 012',tipo:'Electricidad fusibles',zona:'Oeste Madrid',urgencia:'Normal',estado:'Asignado',tecnico_id:3,created:'05/07/2026 08:45'},
+  {id:6,nombre:'Roberto Díaz',tel:'667 890 123',tipo:'Caldera sin agua caliente',zona:'Madrid centro',urgencia:'Urgente',estado:'Nuevo',tecnico_id:0,created:'05/07/2026 11:58'},
+  {id:7,nombre:'Carmen López',tel:'678 901 234',tipo:'Persiana eléctrica',zona:'Norte Madrid',urgencia:'Normal',estado:'En progreso',tecnico_id:4,created:'04/07/2026 14:30'},
+  {id:8,nombre:'María García',tel:'612 345 678',tipo:'Revisión calefacción',zona:'Madrid centro',urgencia:'Programado',estado:'Cerrado',tecnico_id:1,created:'15/06/2026 10:00'},
+  {id:9,nombre:'María García',tel:'612 345 678',tipo:'Cambio termostato',zona:'Madrid centro',urgencia:'Normal',estado:'Cerrado',tecnico_id:1,created:'02/03/2026 11:30'},
+];
+
+var currentTicketId=null;
+var currentView='dashboard';
+
+// ─── HELPERS ───────────────────────────────────────────
+function tecnicoNombre(id){var t=tecnicos.find(function(x){return x.id===id;});return t?t.nombre:'';}
+function urgClass(u){if(!u)return'';if(u.includes('Urgente'))return'urgencia-alta';if(u.includes('Normal'))return'urgencia-normal';return'urgencia-baja';}
+function urgText(u){if(!u)return'';if(u.includes('Urgente'))return'Urgente';if(u.includes('Normal'))return'Normal';return'Programado';}
+function estadoBadge(e){var m={'Nuevo':'badge-nuevo','Asignado':'badge-asignado','En progreso':'badge-progreso','Cerrado':'badge-cerrado'};return '<span class="badge '+(m[e]||'badge-nuevo')+'">'+e+'</span>';}
+function initiales(n){var p=n.split(' ');return(p[0][0]+(p[1]?p[1][0]:'')).toUpperCase();}
+
+// ─── SELECT TECNICO ────────────────────────────────────
+function populateTecnicoSelect(sel,selectedId){
+  sel.innerHTML='<option value="">Sin asignar</option>';
+  tecnicos.forEach(function(t){
+    var op=document.createElement('option');
+    op.value=t.id;op.textContent=t.nombre+' · '+t.zona;
+    if(t.id===selectedId)op.selected=true;
+    sel.appendChild(op);
+  });
+}
+
+// ─── LOGIN ─────────────────────────────────────────────
+function doLogin(){
+  var u=document.getElementById('loginUser').value.trim();
+  var p=document.getElementById('loginPass').value.trim();
+  if(u==='admin'&&p==='demo'){
+    document.getElementById('loginWrap').classList.add('hidden');
+    document.getElementById('app').classList.remove('hidden');
+    renderAll();
+  } else {document.getElementById('loginErr').style.display='block';}
+}
+function doLogout(){
+  document.getElementById('app').classList.add('hidden');
+  document.getElementById('loginWrap').classList.remove('hidden');
+  document.getElementById('loginUser').value='';
+  document.getElementById('loginPass').value='';
+  document.getElementById('loginErr').style.display='none';
+}
+
+// ─── TOPBAR ACTIONS ────────────────────────────────────
+function topbarPrimAction(){
+  if(currentView==='tecnicos'){openNuevoTecnico();}
+  else{openNewTicket();}
+}
+function topbarSecAction(){}
+
+function setTopbar(view){
+  var prim=document.getElementById('topbarPrimBtn');
+  var sec=document.getElementById('topbarSecBtn');
+  if(view==='tecnicos'){prim.textContent='+ Nuevo técnico';sec.style.display='none';}
+  else if(view==='clientes'){prim.textContent='+ Nuevo ticket';sec.style.display='none';}
+  else if(view==='ficha-cliente'){prim.style.display='none';sec.style.display='none';return;}
+  else{prim.textContent='+ Nuevo ticket';sec.style.display='none';}
+  prim.style.display='';
+}
+
+// ─── VIEWS ─────────────────────────────────────────────
+function setView(name,el){
+  currentView=name;
+  document.querySelectorAll('.view').forEach(function(v){v.classList.remove('active');});
+  document.getElementById('view-'+name).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(function(n){n.classList.remove('active');});
+  if(el)el.classList.add('active');
+  var titles={dashboard:'Dashboard',tickets:'Gestión de tickets',kanban:'Vista kanban',clientes:'Clientes',tecnicos:'Técnicos','ficha-cliente':'Ficha de cliente',postventa:'Postventa automática'};
+  document.getElementById('topbarTitle').textContent=titles[name]||name;
+  setTopbar(name);
+  if(name==='tickets')renderTickets();
+  if(name==='kanban')renderKanban();
+  if(name==='clientes')renderClientes();
+  if(name==='tecnicos')renderTecnicos();
+}
+
+// ─── RENDER ALL ────────────────────────────────────────
+function renderAll(){renderTickets();renderKanban();renderClientes();renderTecnicos();updateDashboard();}
+
+function updateDashboard(){
+  var pend=tickets.filter(function(t){return t.estado==='Nuevo';}).length;
+  document.getElementById('kpiHoy').textContent=tickets.length;
+  document.getElementById('kpiPend').textContent=pend;
+  document.getElementById('lastCount').textContent=tickets.length+' tickets';
+  document.getElementById('dashTickets').innerHTML=tickets.slice(0,5).map(function(t){
+    return '<tr><td>'+t.nombre+'</td><td>'+t.tipo+'</td><td>'+estadoBadge(t.estado)+'</td></tr>';
+  }).join('');
+  document.getElementById('dashTecnicos').innerHTML=tecnicos.map(function(t){
+    var activos=tickets.filter(function(tk){return tk.tecnico_id===t.id&&tk.estado!=='Cerrado';}).length;
+    var estado=activos>0?'badge-progreso':'badge-cerrado';
+    var texto=activos>0?'Ocupado':'Libre';
+    return '<tr><td>'+t.nombre+'</td><td>'+activos+'</td><td><span class="badge '+estado+'">'+texto+'</span></td></tr>';
+  }).join('');
+  var kpiOcup=tecnicos.filter(function(t){return tickets.some(function(tk){return tk.tecnico_id===t.id&&tk.estado!=='Cerrado';});}).length;
+  document.getElementById('kpiTotalTec').textContent=tecnicos.length;
+  document.getElementById('kpiOcupados').textContent=kpiOcup;
+  document.getElementById('kpiLibres').textContent=tecnicos.length-kpiOcup;
+  document.getElementById('kpiActivos').textContent=tickets.filter(function(t){return t.estado!=='Cerrado';}).length;
+}
+
+// ─── TICKETS ───────────────────────────────────────────
+function renderTickets(filter){
+  var filtered=filter?tickets.filter(function(t){return t.estado===filter;}):tickets;
+  document.getElementById('ticketsBody').innerHTML=filtered.map(function(t){
+    var tn=tecnicoNombre(t.tecnico_id);
+    return '<tr>'+
+      '<td>#00'+t.id+'</td>'+
+      '<td><button class="action-btn" style="border:none;color:var(--p);padding:0;font-weight:600;font-size:.76rem" onclick="verFichaCliente(\''+t.nombre+'\',\''+t.tel+'\')">'+t.nombre+'</button></td>'+
+      '<td>'+t.tel+'</td>'+
+      '<td>'+t.tipo+'</td>'+
+      '<td>'+t.zona+'</td>'+
+      '<td><span class="'+urgClass(t.urgencia)+'">'+urgText(t.urgencia)+'</span></td>'+
+      '<td>'+estadoBadge(t.estado)+'</td>'+
+      '<td>'+(tn||'<span style="color:var(--muted)">—</span>')+'</td>'+
+      '<td><button class="action-btn" onclick="viewTicket('+t.id+')">Ver</button>'+
+      (t.estado!=='Cerrado'?'<button class="action-btn green" onclick="closeTicket('+t.id+')">Cerrar</button>':'')+
+      '</td></tr>';
+  }).join('');
+}
+function filterTickets(){renderTickets(document.getElementById('filterEstado').value||null);}
+
+// ─── KANBAN ────────────────────────────────────────────
+function renderKanban(){
+  var estados=['Nuevo','Asignado','En progreso','Cerrado'];
+  document.getElementById('kanbanBoard').innerHTML=estados.map(function(estado){
+    var cols=tickets.filter(function(t){return t.estado===estado;});
+    return '<div class="kanban-col">'+
+      '<div class="kanban-col-header"><span class="kanban-col-title">'+estado+'</span><span class="kanban-col-count">'+cols.length+'</span></div>'+
+      cols.map(function(t){
+        var tn=tecnicoNombre(t.tecnico_id);
+        return '<div class="kanban-card" onclick="viewTicket('+t.id+')">'+
+          '<div class="kanban-card-title">'+t.nombre+'</div>'+
+          '<div class="kanban-card-sub">'+t.tipo+'</div>'+
+          '<div class="kanban-card-footer"><span class="kanban-card-tecnico">'+(tn||'Sin asignar')+'</span>'+
+          '<span class="'+urgClass(t.urgencia)+'" style="font-size:.58rem">'+urgText(t.urgencia)+'</span></div></div>';
+      }).join('')+'</div>';
+  }).join('');
+}
+
+// ─── CLIENTES ──────────────────────────────────────────
+function getClientes(){
+  var map={};
+  tickets.forEach(function(t){
+    var key=t.tel;
+    if(!map[key]){map[key]={nombre:t.nombre,tel:t.tel,zona:t.zona,tickets:[]};}
+    map[key].tickets.push(t);
+  });
+  return Object.values(map);
+}
+
+function renderClientes(){
+  var clientes=getClientes();
+  document.getElementById('clientesCount').textContent=clientes.length+' clientes';
+  document.getElementById('clientesBody').innerHTML=clientes.map(function(c){
+    var sorted=c.tickets.slice().sort(function(a,b){return b.id-a.id;});
+    var ultimo=sorted[0];
+    return '<tr>'+
+      '<td><button class="action-btn" style="border:none;color:var(--p);padding:0;font-weight:600;font-size:.76rem" onclick="verFichaCliente(\''+c.nombre+'\',\''+c.tel+'\')">'+c.nombre+'</button></td>'+
+      '<td>'+c.tel+'</td>'+
+      '<td>'+c.tickets.length+'</td>'+
+      '<td>'+ultimo.tipo+'</td>'+
+      '<td>'+estadoBadge(ultimo.estado)+'</td>'+
+      '<td><strong style="color:var(--p)">'+c.tickets.length+'</strong> trabajo'+(c.tickets.length!==1?'s':'')+'</td>'+
+      '<td><button class="action-btn" onclick="verFichaCliente(\''+c.nombre+'\',\''+c.tel+'\')">Ver ficha</button></td></tr>';
+  }).join('');
+}
+
+function verFichaCliente(nombre,tel){
+  var clienteTickets=tickets.filter(function(t){return t.tel===tel;});
+  var sorted=clienteTickets.slice().sort(function(a,b){return b.id-a.id;});
+  var cerrados=clienteTickets.filter(function(t){return t.estado==='Cerrado';}).length;
+  var ini=initiales(nombre);
+  document.getElementById('fichaAv').textContent=ini;
+  document.getElementById('fichaNombre').textContent=nombre;
+  document.getElementById('fichaTel').textContent='📞 '+tel;
+  document.getElementById('fichaZona').textContent='📍 '+(clienteTickets[0]?clienteTickets[0].zona:'—');
+  document.getElementById('fichaCliente').textContent='Cliente desde '+clienteTickets[clienteTickets.length-1].created.split(' ')[0];
+  document.getElementById('fsTotalTrabajos').textContent=clienteTickets.length;
+  document.getElementById('fsCerrados').textContent=cerrados;
+  document.getElementById('fsValoracion').textContent='4.8★';
+  document.getElementById('fsUltimo').textContent=sorted[0]?sorted[0].created.split(' ')[0]:'—';
+  var timelineHtml='<div class="table-header"><div class="table-title">Historial de trabajos — '+clienteTickets.length+' registro'+(clienteTickets.length!==1?'s':'')+'</div></div>';
+  sorted.forEach(function(t){
+    var tn=tecnicoNombre(t.tecnico_id);
+    var dotClass=t.estado==='Cerrado'?'cerrado':t.estado==='Asignado'||t.estado==='En progreso'?'asignado':'nuevo';
+    var dotText=t.estado==='Cerrado'?'✓':t.estado==='Nuevo'?'!':'→';
+    timelineHtml+='<div class="timeline-item">'+
+      '<div class="timeline-dot '+dotClass+'">'+dotText+'</div>'+
+      '<div class="timeline-content">'+
+        '<div class="timeline-title">'+t.tipo+'</div>'+
+        '<div class="timeline-meta">'+
+          '<span>'+estadoBadge(t.estado)+'</span>'+
+          '<span style="color:var(--muted)">'+t.created+'</span>'+
+          '<span style="color:var(--p)">'+(tn||'Sin técnico')+'</span>'+
+          '<span class="'+urgClass(t.urgencia)+'">'+urgText(t.urgencia)+'</span>'+
+        '</div>'+
+      '</div></div>';
+  });
+  document.getElementById('fichaTimeline').innerHTML=timelineHtml;
+  setView('ficha-cliente',null);
+  document.querySelector('[onclick*="clientes"]').classList.add('active');
+}
+
+// ─── TÉCNICOS ──────────────────────────────────────────
+function renderTecnicos(){
+  document.getElementById('tecnicosGrid').innerHTML=tecnicos.map(function(t){
+    var activos=tickets.filter(function(tk){return tk.tecnico_id===t.id&&tk.estado!=='Cerrado';}).length;
+    var estado=activos>0?'<span class="badge badge-progreso">Ocupado</span>':'<span class="badge badge-cerrado">Libre</span>';
+    return '<div class="tecnico-card">'+
+      '<div class="tecnico-card-header">'+
+        '<div class="tecnico-av">'+t.iniciales+'</div>'+
+        '<div><div class="tecnico-name">'+t.nombre+'</div><div class="tecnico-esp">'+t.especialidad+'</div><div class="tecnico-esp" style="margin-top:2px">📍 '+t.zona+'</div></div>'+
+      '</div>'+
+      '<div class="tecnico-stats">'+
+        '<div class="tecnico-stat"><div class="tecnico-stat-n">'+activos+'</div><div class="tecnico-stat-l">Activos</div></div>'+
+        '<div class="tecnico-stat"><div class="tecnico-stat-n">'+t.cerrados_hoy+'</div><div class="tecnico-stat-l">Cerrados hoy</div></div>'+
+      '</div>'+
+      '<div style="margin-top:12px;display:flex;align-items:center;justify-content:space-between">'+estado+
+      '<div class="tecnico-telegram">Telegram activo</div></div>'+
+      '<div class="tecnico-actions">'+
+        '<button class="action-btn" onclick="verTicketsTecnico('+t.id+',\''+t.nombre+'\')">Ver tickets</button>'+
+        '<button class="action-btn red-h" style="margin-left:auto" onclick="eliminarTecnico('+t.id+')">Eliminar</button>'+
+      '</div></div>';
+  }).join('');
+  updateDashboard();
+}
+
+function verTicketsTecnico(id,nombre){
+  var tks=tickets.filter(function(t){return t.tecnico_id===id;});
+  showToast(nombre+': '+tks.length+' ticket'+(tks.length!==1?'s':''));
+}
+
+function eliminarTecnico(id){
+  var activos=tickets.filter(function(t){return t.tecnico_id===id&&t.estado!=='Cerrado';}).length;
+  if(activos>0){showToast('No se puede eliminar: tiene '+activos+' tickets activos','error');return;}
+  tecnicos=tecnicos.filter(function(t){return t.id!==id;});
+  renderTecnicos();
+  showToast('Técnico eliminado ✓');
+}
+
+// ─── TICKET ACTIONS ────────────────────────────────────
+function viewTicket(id){
+  var t=tickets.find(function(x){return x.id===id;});
+  if(!t)return;
+  currentTicketId=id;
+  var tn=tecnicoNombre(t.tecnico_id);
+  document.getElementById('mvTitle').textContent='Ticket #00'+t.id+' — '+t.nombre;
+  document.getElementById('mvBody').innerHTML=
+    '<div class="info-row"><span class="info-label">Avería</span><span class="info-val">'+t.tipo+'</span></div>'+
+    '<div class="info-row"><span class="info-label">Teléfono</span><span class="info-val">'+t.tel+'</span></div>'+
+    '<div class="info-row"><span class="info-label">Zona</span><span class="info-val">'+t.zona+'</span></div>'+
+    '<div class="info-row"><span class="info-label">Urgencia</span><span class="info-val">'+t.urgencia+'</span></div>'+
+    '<div class="info-row"><span class="info-label">Estado</span><span class="info-val">'+estadoBadge(t.estado)+'</span></div>'+
+    '<div class="info-row"><span class="info-label">Técnico actual</span><span class="info-val">'+(tn||'Sin asignar')+'</span></div>'+
+    '<div class="info-row"><span class="info-label">Creado</span><span class="info-val">'+t.created+'</span></div>';
+  populateTecnicoSelect(document.getElementById('mvTecnico'),t.tecnico_id);
+  document.getElementById('modalView').classList.add('open');
+}
+
+function saveTicketChanges(){
+  var t=tickets.find(function(x){return x.id===currentTicketId;});
+  if(!t)return;
+  var newTecId=parseInt(document.getElementById('mvTecnico').value)||0;
+  var prevTecId=t.tecnico_id;
+  t.tecnico_id=newTecId;
+  if(newTecId&&t.estado==='Nuevo'){t.estado='Asignado';}
+  closeModal('modalView');
+  renderAll();
+  var tn=tecnicoNombre(newTecId);
+  if(newTecId&&newTecId!==prevTecId){
+    showToast('Ticket asignado a '+tn+' · Telegram notificado ✓');
+  } else {
+    showToast('Ticket actualizado ✓');
+  }
+}
+
+function closeTicket(id){
+  var t=tickets.find(function(x){return x.id===id;});
+  if(t){t.estado='Cerrado';renderAll();showToast('Ticket #00'+id+' cerrado ✓');}
+}
+
+// ─── NUEVO TICKET ──────────────────────────────────────
+function openNewTicket(){
+  populateTecnicoSelect(document.getElementById('nTecnico'),0);
+  document.getElementById('nNombre').value='';
+  document.getElementById('nTel').value='';
+  document.getElementById('notifBoxNew').style.display='none';
+  document.getElementById('nTecnico').onchange=function(){
+    document.getElementById('notifBoxNew').style.display=this.value?'block':'none';
+  };
+  document.getElementById('modalNew').classList.add('open');
+}
+
+function addTicket(){
+  var nombre=document.getElementById('nNombre').value.trim();
+  var tel=document.getElementById('nTel').value.trim();
+  if(!nombre||!tel){showToast('Nombre y teléfono obligatorios','error');return;}
+  var tecId=parseInt(document.getElementById('nTecnico').value)||0;
+  var newT={
+    id:tickets.reduce(function(m,t){return Math.max(m,t.id);},0)+1,
+    nombre:nombre,tel:tel,
+    tipo:document.getElementById('nTipo').value,
+    zona:document.getElementById('nZona').value,
+    urgencia:document.getElementById('nUrgencia').value,
+    estado:tecId?'Asignado':'Nuevo',
+    tecnico_id:tecId,
+    created:new Date().toLocaleString('es-ES')
+  };
+  tickets.unshift(newT);
+  closeModal('modalNew');
+  renderAll();
+  var tn=tecnicoNombre(tecId);
+  showToast(tn?'Ticket creado · '+tn+' notificado por Telegram ✓':'Ticket creado ✓');
+}
+
+// ─── NUEVO TÉCNICO ─────────────────────────────────────
+function openNuevoTecnico(){
+  document.getElementById('tNombre').value='';
+  document.getElementById('tTel').value='';
+  document.getElementById('tTelegram').value='';
+  document.getElementById('modalNuevoTecnico').classList.add('open');
+}
+
+function addTecnico(){
+  var nombre=document.getElementById('tNombre').value.trim();
+  var tel=document.getElementById('tTel').value.trim();
+  if(!nombre){showToast('El nombre es obligatorio','error');return;}
+  var ini=initiales(nombre);
+  var newT={
+    id:tecnicos.reduce(function(m,t){return Math.max(m,t.id);},0)+1,
+    nombre:nombre,iniciales:ini,
+    especialidad:document.getElementById('tEsp').value,
+    zona:document.getElementById('tZona').value,
+    tel:tel,
+    telegram:document.getElementById('tTelegram').value.trim()||'pendiente',
+    tickets_activos:0,cerrados_hoy:0
+  };
+  tecnicos.push(newT);
+  closeModal('modalNuevoTecnico');
+  renderTecnicos();
+  showToast(nombre+' añadido como técnico ✓');
+}
+
+// ─── UTILS ─────────────────────────────────────────────
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+function showToast(msg,type){
+  var t=document.getElementById('toast');
+  t.textContent=msg;
+  t.className='toast'+(type==='error'?' error':'');
+  t.classList.add('show');
+  setTimeout(function(){t.classList.remove('show');},2800);
+}
+
+document.getElementById('loginPass').addEventListener('keydown',function(e){if(e.key==='Enter')doLogin();});
+document.querySelectorAll('.modal-overlay').forEach(function(m){
+  m.addEventListener('click',function(e){if(e.target===m)m.classList.remove('open');});
+});
+</script>
+</body>
+</html>
