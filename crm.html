@@ -221,6 +221,36 @@ td.num{font-variant-numeric:tabular-nums;font-weight:600}
 .zonechips{display:flex;gap:7px;flex-wrap:wrap}
 .zonechip{padding:5px 11px;border-radius:999px;background:rgba(124,77,255,.12);color:var(--p2);border:1px solid rgba(124,77,255,.25);font-size:12.5px;font-weight:600}
 
+/* ---------- CLIENTES ---------- */
+.badge-domestico{background:rgba(0,212,170,.1);color:var(--g);border:1px solid rgba(0,212,170,.28)}
+.badge-empresa{background:rgba(124,77,255,.1);color:var(--p2);border:1px solid rgba(124,77,255,.28)}
+.cliente-link{cursor:pointer;transition:.15s;text-decoration:underline;text-decoration-color:transparent;text-underline-offset:3px}
+.cliente-link:hover{color:var(--p2);text-decoration-color:var(--p2)}
+.head-actions{display:flex;gap:10px;flex-wrap:wrap}
+.search-box{position:relative;flex:1;min-width:200px;max-width:340px}
+.search-box input{width:100%;padding:9px 12px 9px 36px;border-radius:10px;background:var(--bg2);border:1px solid var(--line2);color:var(--text);font-size:13.5px;outline:none}
+.search-box input:focus{border-color:var(--p)}
+.search-box svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:var(--muted)}
+
+/* ficha cliente */
+.ficha-head{display:flex;align-items:center;gap:18px;padding:24px;margin-bottom:20px}
+.ficha-avatar{width:72px;height:72px;border-radius:18px;background:linear-gradient(135deg,var(--p),var(--p2));display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:700;color:#fff;flex-shrink:0}
+.ficha-avatar.emp{background:linear-gradient(135deg,#00d4aa,#00a888)}
+.ficha-id{min-width:0}
+.ficha-id .fh-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:7px}
+.ficha-id .fh-top h2{font-size:24px;font-weight:700;letter-spacing:-.5px}
+.ficha-id .fh-sub{color:var(--muted);font-size:13.5px;display:flex;gap:8px 16px;flex-wrap:wrap}
+.ficha-id .fh-sub span{display:inline-flex;align-items:center;gap:5px}
+.datos-card{padding:22px;margin-bottom:22px}
+.datos-card h4{font-size:15px;font-weight:600;margin-bottom:16px}
+.hist-tk{display:flex;flex-direction:column;gap:12px}
+.hist-tk-item{padding:15px 18px;border-left:3px solid var(--p);border-radius:0 12px 12px 0;background:var(--bg2)}
+.hist-tk-item .hk-top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:8px}
+.hist-tk-item .hk-top b{font-size:14.5px;font-weight:600}
+.hist-tk-item .hk-meta{display:flex;gap:6px 16px;flex-wrap:wrap;font-size:12.5px;color:var(--muted)}
+.hist-tk-item .hk-meta span{display:inline-flex;align-items:center;gap:5px}
+.hist-tk-item .hk-notas{font-size:13px;color:var(--muted);font-style:italic;margin-top:8px}
+
 /* gerencia sub-tabs */
 .subtabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:24px;border-bottom:1px solid var(--line);padding-bottom:0}
 .subtab{padding:10px 16px;border-radius:10px 10px 0 0;background:none;border:none;color:var(--muted);font-size:14px;font-weight:600;border-bottom:2px solid transparent;transition:.15s}
@@ -383,6 +413,10 @@ td.num{font-variant-numeric:tabular-nums;font-weight:600}
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg>
       Mis tickets
     </button>
+    <button class="navitem" data-view="clientes" id="navClientes">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.2"/><path d="M2.8 20c0-3.1 2.8-4.8 6.2-4.8s6.2 1.7 6.2 4.8"/><path d="M16.5 4.9a3.2 3.2 0 010 6.1M21.2 20c0-2.6-1.5-4.2-3.4-4.7"/></svg>
+      Clientes
+    </button>
     <button class="navitem" data-view="calendario">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
       Calendario
@@ -444,6 +478,34 @@ td.num{font-variant-numeric:tabular-nums;font-weight:600}
       </div>
       <div class="ticket-list" id="techTicketList"></div>
     </section>
+
+    <!-- VIEW: CLIENTES (lista) -->
+    <section class="view" id="view-clientes">
+      <div class="view-head">
+        <div><h2>Clientes</h2><p id="clientesSub">Cartera de clientes domésticos y empresas</p></div>
+        <div class="head-actions" id="clientesActions"></div>
+      </div>
+      <div class="filters">
+        <select id="fTipoCliente">
+          <option value="">Todos</option>
+          <option value="domestico">Doméstico</option>
+          <option value="empresa">Empresa</option>
+        </select>
+        <div class="search-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+          <input type="text" id="buscarCliente" placeholder="Buscar por nombre, DNI/CIF o teléfono...">
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Tipo</th><th>Nombre / Razón social</th><th>DNI / CIF</th><th>Teléfono</th><th>Zona</th><th>Tickets</th><th>Último ticket</th><th></th></tr></thead>
+          <tbody id="clientesTableBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- VIEW: FICHA CLIENTE (detalle) -->
+    <section class="view" id="view-ficha"></section>
 
     <!-- VIEW: CALENDARIO -->
     <section class="view" id="view-calendario">
@@ -576,50 +638,83 @@ let usuarios = [
     wa_number:"34600111222", apikey:"", ultimoAcceso:"2026-07-05T07:30:00" }
 ];
 
-// 8 tickets demo
+// 9 tickets demo — vinculados a clientes por clienteId
 let tickets = [
-  // --- carlos (Norte/Oeste): asignado, atendido, cerrado ---
-  { id:"AV-1042", cliente:"Talleres Núñez", telefono:"645 900 112", averia:"Cambio de aceite y filtro urgente",
+  // --- María García (c1) → los 3 tickets de Carlos (Norte/Oeste) ---
+  { id:"AV-1042", clienteId:"c1", cliente:"María García", telefono:"612 345 678", averia:"Cambio de aceite y filtro urgente",
     zona:"Norte", urgencia:"media", tecnicoId:"t1", estado:"asignado", notas:"", horas:0,
     fechaCreacion:"2026-07-05T07:50:00", agendaDia:"", agendaHora:"",
     historial:[{estado:"nuevo",fecha:"2026-07-05T07:50:00"},{estado:"asignado",fecha:"2026-07-05T08:05:00"}] },
 
-  { id:"AV-1039", cliente:"Autoescuela Vega", telefono:"645 771 220", averia:"Frenos hacen ruido al pisar",
+  { id:"AV-1039", clienteId:"c1", cliente:"María García", telefono:"612 345 678", averia:"Frenos hacen ruido al pisar",
     zona:"Oeste", urgencia:"alta", tecnicoId:"t1", estado:"atendido", notas:"Pastillas muy gastadas, pendiente presupuesto.", horas:1.5,
     fechaCreacion:"2026-07-04T10:20:00", agendaDia:"", agendaHora:"",
     historial:[{estado:"nuevo",fecha:"2026-07-04T10:20:00"},{estado:"asignado",fecha:"2026-07-04T10:35:00"},{estado:"atendido",fecha:"2026-07-04T12:10:00"}] },
 
-  { id:"AV-1021", cliente:"Rent a Car Delta", telefono:"645 118 004", averia:"Revisión pre-ITV flota (2 vehículos)",
-    zona:"Norte", urgencia:"baja", tecnicoId:"t1", estado:"cerrado", notas:"Todo correcto, apto para ITV. Cliente avisado.", horas:3,
+  { id:"AV-1021", clienteId:"c1", cliente:"María García", telefono:"612 345 678", averia:"Revisión pre-ITV completa",
+    zona:"Norte", urgencia:"baja", tecnicoId:"t1", estado:"cerrado", notas:"Todo correcto, apto para ITV. Clienta avisada.", horas:3,
     fechaCreacion:"2026-06-28T09:00:00", agendaDia:"", agendaHora:"",
     historial:[{estado:"nuevo",fecha:"2026-06-28T09:00:00"},{estado:"asignado",fecha:"2026-06-28T09:20:00"},{estado:"atendido",fecha:"2026-06-28T11:00:00"},{estado:"cerrado",fecha:"2026-06-28T14:30:00"}] },
 
-  // --- luis (Sur/Este): nuevo, atendido, agendado ---
-  { id:"AV-1045", cliente:"Panadería El Horno", telefono:"646 233 887", averia:"Furgoneta no arranca en frío",
-    zona:"Sur", urgencia:"alta", tecnicoId:"t2", estado:"nuevo", notas:"", horas:0,
-    fechaCreacion:"2026-07-05T08:30:00", agendaDia:"", agendaHora:"",
-    historial:[{estado:"nuevo",fecha:"2026-07-05T08:30:00"}] },
-
-  { id:"AV-1040", cliente:"Distribuciones Sur", telefono:"646 550 019", averia:"Cambio de neumáticos (4) + equilibrado",
+  // --- Juan López (c2) → Luis (Este) ---
+  { id:"AV-1040", clienteId:"c2", cliente:"Juan López", telefono:"623 456 789", averia:"Cambio de neumáticos (4) + equilibrado",
     zona:"Este", urgencia:"media", tecnicoId:"t2", estado:"atendido", notas:"Neumáticos pedidos, llegan mañana.", horas:0.5,
     fechaCreacion:"2026-07-04T11:15:00", agendaDia:"", agendaHora:"",
     historial:[{estado:"nuevo",fecha:"2026-07-04T11:15:00"},{estado:"asignado",fecha:"2026-07-04T11:30:00"},{estado:"atendido",fecha:"2026-07-04T15:00:00"}] },
 
-  { id:"AV-1033", cliente:"Clínica Dental Este", telefono:"646 700 431", averia:"Aire acondicionado no enfría",
+  { id:"AV-1033", clienteId:"c2", cliente:"Juan López", telefono:"623 456 789", averia:"Aire acondicionado no enfría",
     zona:"Este", urgencia:"media", tecnicoId:"t2", estado:"agendado", notas:"Cliente prefiere primera hora.", horas:0,
     fechaCreacion:"2026-07-02T16:40:00", agendaDia:"2026-07-08", agendaHora:"09:30",
     historial:[{estado:"nuevo",fecha:"2026-07-02T16:40:00"},{estado:"asignado",fecha:"2026-07-02T17:00:00"},{estado:"atendido",fecha:"2026-07-03T10:00:00"},{estado:"agendado",fecha:"2026-07-03T10:20:00"}] },
 
-  // --- sin técnico: nuevo, nuevo(pendiente de asignar) ---
-  { id:"AV-1046", cliente:"Gimnasio PowerFit", telefono:"647 001 556", averia:"Batería agotada furgoneta reparto",
+  // --- Ana Martínez (c3) → Luis (Sur) ---
+  { id:"AV-1045", clienteId:"c3", cliente:"Ana Martínez", telefono:"634 567 890", averia:"El coche no arranca en frío",
+    zona:"Sur", urgencia:"alta", tecnicoId:"t2", estado:"nuevo", notas:"", horas:0,
+    fechaCreacion:"2026-07-05T08:30:00", agendaDia:"", agendaHora:"",
+    historial:[{estado:"nuevo",fecha:"2026-07-05T08:30:00"}] },
+
+  // --- Reformas García SL (c4) → empresa (Oeste/Sur) ---
+  { id:"AV-1046", clienteId:"c4", cliente:"Reformas García SL", telefono:"667 890 123", averia:"Batería agotada furgoneta de reparto",
     zona:"Sur", urgencia:"alta", tecnicoId:null, estado:"nuevo", notas:"", horas:0,
     fechaCreacion:"2026-07-05T09:10:00", agendaDia:"", agendaHora:"",
     historial:[{estado:"nuevo",fecha:"2026-07-05T09:10:00"}] },
 
-  { id:"AV-1047", cliente:"Floristería Aroma", telefono:"647 220 913", averia:"Luz de motor encendida",
+  { id:"AV-1048", clienteId:"c4", cliente:"Reformas García SL", telefono:"667 890 123", averia:"Revisión de flota de obra (3 furgonetas)",
+    zona:"Oeste", urgencia:"media", tecnicoId:"t1", estado:"asignado", notas:"", horas:0,
+    fechaCreacion:"2026-07-05T09:40:00", agendaDia:"", agendaHora:"",
+    historial:[{estado:"nuevo",fecha:"2026-07-05T09:40:00"},{estado:"asignado",fecha:"2026-07-05T09:55:00"}] },
+
+  // --- Instalaciones Norte SL (c5) → empresa (Norte) ---
+  { id:"AV-1047", clienteId:"c5", cliente:"Instalaciones Norte SL", telefono:"678 901 234", averia:"Luz de motor encendida",
     zona:"Norte", urgencia:"baja", tecnicoId:null, estado:"nuevo", notas:"", horas:0,
     fechaCreacion:"2026-07-05T09:25:00", agendaDia:"", agendaHora:"",
     historial:[{estado:"nuevo",fecha:"2026-07-05T09:25:00"}] }
+];
+
+// Clientes (domésticos y empresas) — vinculados a tickets por clienteId
+let clientes = [
+  { id:"c1", tipo:"domestico", nombre:"María", apellidos:"García", doc:"34567890A",
+    telefono:"612 345 678", email:"maria.garcia@email.com",
+    direccion:"Calle Mayor 12, 2ºB", localidad:"Madrid", cp:"28013",
+    zona:"Norte", notas:"Clienta habitual, muy puntual con los pagos." },
+  { id:"c2", tipo:"domestico", nombre:"Juan", apellidos:"López", doc:"23456789B",
+    telefono:"623 456 789", email:"",
+    direccion:"Avda. La Paz 45", localidad:"Madrid", cp:"28009",
+    zona:"Norte", notas:"" },
+  { id:"c3", tipo:"domestico", nombre:"Ana", apellidos:"Martínez", doc:"45678901C",
+    telefono:"634 567 890", email:"",
+    direccion:"Calle Pez 8, 1ºA", localidad:"Madrid", cp:"28004",
+    zona:"Sur", notas:"" },
+  { id:"c4", tipo:"empresa", razonSocial:"Reformas García SL", doc:"B12345678",
+    telefono:"667 890 123", email:"info@reformasgarcia.es",
+    direccion:"Polígono Oeste, Nave 12", localidad:"Madrid", cp:"28914",
+    contacto:"Pedro García", cargoContacto:"CEO", telContacto:"",
+    zona:"Oeste", notas:"Flota de 3 furgonetas de obra." },
+  { id:"c5", tipo:"empresa", razonSocial:"Instalaciones Norte SL", doc:"B98765432",
+    telefono:"678 901 234", email:"contacto@instalacionesnorte.es",
+    direccion:"Calle Industria 3", localidad:"Madrid", cp:"28034",
+    contacto:"Carmen Ruiz", cargoContacto:"Gerente", telContacto:"",
+    zona:"Norte", notas:"" }
 ];
 
 // Log de accesos (se rellena en login; precargamos histórico demo)
@@ -675,6 +770,28 @@ function badgeUrg(u){
 function iniciales(nombre){
   return nombre.split(" ").filter(Boolean).slice(0,2).map(w=>w[0].toUpperCase()).join("");
 }
+function fmtFechaMini(iso){
+  if(!iso) return "—";
+  const d = new Date(iso); if(isNaN(d)) return "—";
+  return d.toLocaleDateString("es-ES",{day:"2-digit",month:"short"});
+}
+
+/* ---- clientes: helpers y permisos ---- */
+function getCliente(id){ return clientes.find(c => c.id === id) || null; }
+function nombreCliente(c){ return c.tipo === "empresa" ? c.razonSocial : (c.nombre + " " + c.apellidos).trim(); }
+function ticketsDeCliente(cid){ return tickets.filter(t => t.clienteId === cid); }
+function clientesVisibles(){
+  if(sesion.rol === "gerente") return clientes.slice();
+  // técnico: solo clientes con al menos un ticket asignado a él
+  const ids = new Set(tickets.filter(t => t.tecnicoId === sesion.id).map(t => t.clienteId).filter(Boolean));
+  return clientes.filter(c => ids.has(c.id));
+}
+function puedeVerCliente(id){ return sesion.rol === "gerente" || clientesVisibles().some(c => c.id === id); }
+function nextTicketId(){
+  const nums = tickets.map(t => parseInt(String(t.id).replace(/\D/g,""), 10)).filter(n => !isNaN(n));
+  return "AV-" + ((nums.length ? Math.max(...nums) : 1000) + 1);
+}
+function nextClienteId(){ return "c" + Date.now().toString().slice(-7); }
 
 /* ==========================================================
    TOASTS
@@ -759,6 +876,7 @@ function entrarApp(){
   renderTecnicoDashboard();
   renderCalendario();
   renderPerfil();
+  renderClientes();
 }
 
 function logout(){
@@ -790,10 +908,11 @@ function switchView(view){
   const target = $("#view-" + view);
   if(target) target.classList.add("active");
 
-  const titles = { tickets:"Mis tickets", calendario:"Calendario", perfil:"Mi perfil", gerencia:"Gerencia" };
+  const titles = { tickets:"Mis tickets", clientes:"Clientes", calendario:"Calendario", perfil:"Mi perfil", gerencia:"Gerencia" };
   $("#pageTitle").textContent = titles[view] || "";
 
   if(view === "gerencia") renderGerencia();
+  if(view === "clientes") renderClientes();
   closeMobileNav();
 }
 
@@ -868,13 +987,14 @@ function renderTechTicketList(){
   }
   cont.innerHTML = mine.map(t => ticketRow(t)).join("");
   $$("[data-ticket]", cont).forEach(el => el.addEventListener("click", () => abrirTicket(el.dataset.ticket)));
+  wireClienteLinks(cont);
 }
 
 function ticketRow(t){
   return `<div class="card ticket" data-ticket="${t.id}">
     <div class="t-main">
       <div class="t-top">
-        <span class="t-cliente">${esc(t.cliente)}</span>
+        <span class="t-cliente${t.clienteId?' cliente-link':''}"${t.clienteId?` data-ficha="${t.clienteId}"`:''}>${esc(t.cliente)}</span>
         ${badgeUrg(t.urgencia)}
       </div>
       <div class="t-averia">${esc(t.averia)}</div>
@@ -1061,6 +1181,10 @@ function modalCerrar(t){
 function refrescarTecnico(){
   renderTecnicoDashboard();
   renderCalendario();
+  renderClientes();
+  if(fichaActualId && $("#view-ficha").classList.contains("active")){
+    const c = getCliente(fichaActualId); if(c) renderFicha(c);
+  }
   if(sesion.rol==="gerente" && gerenciaUnlocked) renderGerencia();
 }
 
@@ -1203,7 +1327,7 @@ function renderGlobalTable(){
   if(rows.length===0){ body.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:34px">Sin tickets para estos filtros.</td></tr>'; return; }
   body.innerHTML = rows.map(t=>`
     <tr data-ticket="${t.id}" style="cursor:pointer">
-      <td><b>${esc(t.cliente)}</b><br><span style="color:var(--muted);font-size:12px">#${esc(t.id)}</span></td>
+      <td><b class="${t.clienteId?'cliente-link':''}"${t.clienteId?` data-ficha="${t.clienteId}"`:''}>${esc(t.cliente)}</b><br><span style="color:var(--muted);font-size:12px">#${esc(t.id)}</span></td>
       <td style="max-width:220px">${esc(t.averia)}</td>
       <td>${esc(t.zona)}</td>
       <td>${esc(nombreTecnico(t.tecnicoId))}</td>
@@ -1212,6 +1336,7 @@ function renderGlobalTable(){
       <td class="num">${t.horas>0?t.horas+" h":"—"}</td>
     </tr>`).join("");
   $$("[data-ticket]", body).forEach(el=>el.addEventListener("click",()=>abrirTicket(el.dataset.ticket)));
+  wireClienteLinks(body);
 }
 ["#fTecnico","#fEstadoG","#fZona"].forEach(s=>$(s).addEventListener("change", renderGlobalTable));
 
@@ -1423,6 +1548,345 @@ function renderAccesos(){
       <td>${a.rol==="gerente"?'<span class="badge badge-urg-media">Gerente</span>':'<span class="badge badge-atendido">Técnico</span>'}</td>
       <td style="white-space:nowrap">${esc(fmtFecha(a.fecha))}</td>
     </tr>`).join("") || '<tr><td colspan="3" style="text-align:center;color:var(--muted);padding:30px">Sin accesos registrados.</td></tr>';
+}
+
+/* ==========================================================
+   CLIENTES — lista, ficha, alta/edición/baja y ticket
+   ========================================================== */
+let fichaActualId = null;
+
+function wireClienteLinks(root){
+  $$("[data-ficha]", root).forEach(el => el.addEventListener("click", e => {
+    e.stopPropagation();
+    abrirFichaCliente(el.dataset.ficha);
+  }));
+}
+
+/* --- lista de clientes --- */
+function renderClientes(){
+  const acc = $("#clientesActions");
+  if(sesion.rol === "gerente"){
+    acc.innerHTML = `
+      <button class="btn btn-sm" id="btnNuevoDom"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Nuevo cliente doméstico</button>
+      <button class="btn btn-primary btn-sm" id="btnNuevaEmp"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Nueva empresa</button>`;
+    $("#btnNuevoDom").addEventListener("click", () => modalCliente("domestico"));
+    $("#btnNuevaEmp").addEventListener("click", () => modalCliente("empresa"));
+  } else {
+    acc.innerHTML = "";
+  }
+  $("#clientesSub").textContent = sesion.rol === "gerente"
+    ? "Cartera completa de clientes domésticos y empresas"
+    : "Clientes vinculados a tus tickets";
+  renderClientesTable();
+}
+
+function renderClientesTable(){
+  const tipo = $("#fTipoCliente").value;
+  const q = ($("#buscarCliente").value || "").trim().toLowerCase();
+  let list = clientesVisibles();
+  if(tipo) list = list.filter(c => c.tipo === tipo);
+  if(q){
+    const qd = q.replace(/\s/g,"");
+    list = list.filter(c =>
+      nombreCliente(c).toLowerCase().includes(q) ||
+      (c.doc||"").toLowerCase().includes(q) ||
+      (c.telefono||"").replace(/\s/g,"").includes(qd) ||
+      (c.contacto||"").toLowerCase().includes(q)
+    );
+  }
+  list.sort((a,b) => nombreCliente(a).localeCompare(nombreCliente(b), "es"));
+
+  const body = $("#clientesTableBody");
+  if(list.length === 0){
+    body.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:34px">Sin clientes' + (q||tipo ? " para estos filtros" : "") + '.</td></tr>';
+    return;
+  }
+  body.innerHTML = list.map(c => {
+    const tks = ticketsDeCliente(c.id);
+    const ultimo = tks.slice().sort((a,b) => new Date(b.fechaCreacion) - new Date(a.fechaCreacion))[0];
+    const tipoBadge = c.tipo === "empresa"
+      ? '<span class="badge badge-empresa">Empresa</span>'
+      : '<span class="badge badge-domestico">Doméstico</span>';
+    return `<tr>
+      <td>${tipoBadge}</td>
+      <td><b class="cliente-link" data-ficha="${c.id}">${esc(nombreCliente(c))}</b>${c.tipo==="empresa"&&c.contacto?'<br><span style="color:var(--muted);font-size:12px">'+esc(c.contacto)+'</span>':''}</td>
+      <td style="white-space:nowrap">${esc(c.doc||"—")}</td>
+      <td style="white-space:nowrap">${esc(c.telefono||"—")}</td>
+      <td>${esc(c.zona||"—")}</td>
+      <td class="num">${tks.length}</td>
+      <td style="white-space:nowrap">${ultimo?esc(fmtFechaCorta(ultimo.fechaCreacion)):"—"}</td>
+      <td><button class="btn btn-sm" data-ficha="${c.id}">Ver ficha</button></td>
+    </tr>`;
+  }).join("");
+  wireClienteLinks(body);
+}
+$("#fTipoCliente").addEventListener("change", renderClientesTable);
+$("#buscarCliente").addEventListener("input", renderClientesTable);
+
+/* --- ficha de cliente --- */
+function abrirFichaCliente(id){
+  const c = getCliente(id);
+  if(!c) return;
+  if(!puedeVerCliente(id)){
+    toast("Sin acceso", "No tienes permiso para ver esta ficha.", "warn", "!");
+    return;
+  }
+  renderFicha(c);
+  $$(".view").forEach(v => v.classList.remove("active"));
+  $("#view-ficha").classList.add("active");
+  $$(".navitem").forEach(n => n.classList.toggle("active", n.dataset.view === "clientes"));
+  $("#pageTitle").textContent = "Ficha de cliente";
+  const main = $(".main"); if(main) main.scrollTop = 0;
+  closeMobileNav();
+}
+
+function renderFicha(c){
+  fichaActualId = c.id;
+  const tks = ticketsDeCliente(c.id).slice().sort((a,b) => new Date(b.fechaCreacion) - new Date(a.fechaCreacion));
+  const total = tks.length;
+  const cerrados = tks.filter(t => t.estado === "cerrado").length;
+  const enCurso = tks.filter(t => t.estado !== "cerrado").length;
+  const ultimo = tks[0];
+  const esEmpresa = c.tipo === "empresa";
+  const puedeGestionar = sesion.rol === "gerente";
+  const nombre = nombreCliente(c);
+  const tipoBadge = esEmpresa
+    ? '<span class="badge badge-empresa">Empresa</span>'
+    : '<span class="badge badge-domestico">Doméstico</span>';
+
+  const direccionCompleta = [c.direccion, (c.cp && c.localidad) ? (c.cp + " " + c.localidad) : (c.localidad || c.cp || "")]
+    .filter(Boolean).join(" · ") || "—";
+
+  const histHtml = tks.length ? tks.map(t => {
+    const cierre = t.estado === "cerrado" ? cierreFecha(t) : "";
+    return `<div class="hist-tk-item">
+      <div class="hk-top"><b>${esc(t.averia)}</b>${badgeEstado(t.estado)}</div>
+      <div class="hk-meta">
+        <span>#${esc(t.id)}</span>
+        <span>${esc(nombreTecnico(t.tecnicoId))}</span>
+        <span>Creado ${esc(fmtFechaCorta(t.fechaCreacion))}</span>
+        ${cierre?'<span>Cerrado '+esc(fmtFechaCorta(cierre))+'</span>':''}
+        ${t.horas>0?'<span>'+t.horas+' h</span>':''}
+      </div>
+      ${t.notas?'<div class="hk-notas">“'+esc(t.notas)+'”</div>':''}
+      <button class="btn btn-sm" data-tkdet="${t.id}" style="margin-top:10px">Ver detalle</button>
+    </div>`;
+  }).join("") : '<div class="empty card"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 12h8M8 16h5M8 8h8"/></svg><div>Sin tickets registrados para este cliente.</div></div>';
+
+  $("#view-ficha").innerHTML = `
+    <div class="view-head" style="margin-bottom:16px">
+      <button class="btn btn-ghost btn-sm" id="btnVolverClientes"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg> Volver a clientes</button>
+      ${puedeGestionar?`<div class="head-actions">
+        <button class="btn btn-sm" id="btnEditarCliente">Editar datos</button>
+        <button class="btn btn-sm btn-danger" id="btnBorrarCliente">Eliminar</button>
+      </div>`:''}
+    </div>
+    <div class="card ficha-head">
+      <div class="ficha-avatar ${esEmpresa?'emp':''}">${esc(iniciales(nombre))}</div>
+      <div class="ficha-id">
+        <div class="fh-top">${tipoBadge}<h2>${esc(nombre)}</h2></div>
+        <div class="fh-sub">
+          <span>${esEmpresa?'CIF':'DNI'} ${esc(c.doc||"—")}</span>
+          <span>${esc(c.telefono||"—")}</span>
+          <span>Zona ${esc(c.zona||"—")}</span>
+          ${c.email?'<span>'+esc(c.email)+'</span>':''}
+        </div>
+      </div>
+    </div>
+    <div class="kpis">
+      ${kpi("Total tickets", total, "p", '<path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/>')}
+      ${kpi("Cerrados", cerrados, "g", '<path d="M20 6L9 17l-5-5"/>')}
+      ${kpi("En curso", enCurso, "gold", '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>')}
+      ${kpi("Último servicio", ultimo?fmtFechaMini(ultimo.fechaCreacion):"—", "p", '<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>')}
+    </div>
+    <div class="card datos-card">
+      <h4>Datos completos</h4>
+      <div class="pf-grid">
+        <div class="pf-item" style="grid-column:1/-1"><div class="l">Dirección${esEmpresa?' fiscal':''}</div><div class="v">${esc(direccionCompleta)}</div></div>
+        ${esEmpresa?`
+          <div class="pf-item"><div class="l">Persona de contacto</div><div class="v">${esc(c.contacto||"—")}</div></div>
+          <div class="pf-item"><div class="l">Cargo</div><div class="v">${esc(c.cargoContacto||"—")}</div></div>
+          ${c.telContacto?`<div class="pf-item"><div class="l">Teléfono contacto</div><div class="v">${esc(c.telContacto)}</div></div>`:''}
+        `:''}
+      </div>
+      <div class="field" style="margin-top:18px;margin-bottom:0">
+        <label for="fichaNotas">Notas generales</label>
+        <textarea id="fichaNotas" placeholder="Anota observaciones sobre este cliente...">${esc(c.notas||"")}</textarea>
+        <button class="btn btn-sm" id="btnGuardarNotasCliente" style="margin-top:10px">Guardar notas</button>
+      </div>
+    </div>
+    <div class="view-head" style="margin-bottom:14px">
+      <h3 class="section-title" style="margin:0">Historial de tickets</h3>
+      <button class="btn btn-primary btn-sm" id="btnNuevoTicketCliente"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Nuevo ticket para este cliente</button>
+    </div>
+    <div class="hist-tk">${histHtml}</div>
+  `;
+
+  $("#btnVolverClientes").addEventListener("click", () => switchView("clientes"));
+  $("#btnGuardarNotasCliente").addEventListener("click", () => {
+    c.notas = $("#fichaNotas").value;
+    toast("Notas guardadas", "Ficha de " + nombre + " actualizada.", "ok", "✓");
+  });
+  $("#btnNuevoTicketCliente").addEventListener("click", () => modalNuevoTicket(c));
+  $$("[data-tkdet]", $("#view-ficha")).forEach(el => el.addEventListener("click", () => abrirTicket(el.dataset.tkdet)));
+  if(puedeGestionar){
+    $("#btnEditarCliente").addEventListener("click", () => modalCliente(c.tipo, c));
+    $("#btnBorrarCliente").addEventListener("click", () => confirmarBorrarCliente(c));
+  }
+}
+
+/* --- alta / edición de cliente (solo gerente) --- */
+function modalCliente(tipo, existing){
+  const editando = !!existing;
+  const c = existing || {};
+  const esEmp = tipo === "empresa";
+  const titulo = editando ? (esEmp?"Editar empresa":"Editar cliente") : (esEmp?"Nueva empresa":"Nuevo cliente doméstico");
+  const zonaOpts = ZONAS.map(z => `<option ${c.zona===z?"selected":""}>${z}</option>`).join("");
+
+  const camposDom = `
+    <div class="field" style="margin:0"><label>Nombre completo *</label><input id="clNombre" value="${esc(c.nombre||"")}"></div>
+    <div class="field" style="margin:0"><label>Apellidos *</label><input id="clApellidos" value="${esc(c.apellidos||"")}"></div>
+    <div class="field" style="margin:0"><label>DNI *</label><input id="clDoc" value="${esc(c.doc||"")}"></div>
+    <div class="field" style="margin:0"><label>Teléfono *</label><input id="clTel" value="${esc(c.telefono||"")}"></div>
+    <div class="field" style="margin:0"><label>Email</label><input id="clEmail" value="${esc(c.email||"")}"></div>
+    <div class="field" style="margin:0"><label>Zona *</label><select id="clZona"><option value="">—</option>${zonaOpts}</select></div>
+    <div class="field" style="margin:0"><label>Dirección (calle + nº + piso)</label><input id="clDir" value="${esc(c.direccion||"")}"></div>
+    <div class="field" style="margin:0"><label>Localidad</label><input id="clLoc" value="${esc(c.localidad||"")}"></div>
+    <div class="field" style="margin:0"><label>Código postal</label><input id="clCp" value="${esc(c.cp||"")}"></div>`;
+
+  const camposEmp = `
+    <div class="field" style="margin:0"><label>Razón social *</label><input id="clRazon" value="${esc(c.razonSocial||"")}"></div>
+    <div class="field" style="margin:0"><label>CIF *</label><input id="clDoc" value="${esc(c.doc||"")}"></div>
+    <div class="field" style="margin:0"><label>Teléfono *</label><input id="clTel" value="${esc(c.telefono||"")}"></div>
+    <div class="field" style="margin:0"><label>Email</label><input id="clEmail" value="${esc(c.email||"")}"></div>
+    <div class="field" style="margin:0"><label>Dirección fiscal (calle + nº)</label><input id="clDir" value="${esc(c.direccion||"")}"></div>
+    <div class="field" style="margin:0"><label>Localidad</label><input id="clLoc" value="${esc(c.localidad||"")}"></div>
+    <div class="field" style="margin:0"><label>Código postal</label><input id="clCp" value="${esc(c.cp||"")}"></div>
+    <div class="field" style="margin:0"><label>Persona de contacto *</label><input id="clContacto" value="${esc(c.contacto||"")}"></div>
+    <div class="field" style="margin:0"><label>Cargo de contacto</label><input id="clCargo" value="${esc(c.cargoContacto||"")}"></div>
+    <div class="field" style="margin:0"><label>Teléfono contacto</label><input id="clTelC" value="${esc(c.telContacto||"")}"></div>
+    <div class="field" style="margin:0"><label>Zona *</label><select id="clZona"><option value="">—</option>${zonaOpts}</select></div>`;
+
+  const back = openModal(`
+    <div class="modal wide">
+      <div class="modal-head"><div><h3>${titulo}</h3><p>${esEmp?"Datos fiscales y de contacto":"Datos del cliente particular"}</p></div><button class="modal-x" data-close>&times;</button></div>
+      <div class="modal-body">
+        <div id="clErr" class="login-err hidden"></div>
+        <div class="detail-grid" style="margin-bottom:14px">${esEmp?camposEmp:camposDom}</div>
+        <div class="field" style="margin:0"><label>Notas generales</label><textarea id="clNotas" placeholder="Observaciones...">${esc(c.notas||"")}</textarea></div>
+      </div>
+      <div class="modal-foot"><button class="btn btn-ghost btn-sm" data-close>Cancelar</button><button class="btn btn-primary btn-sm" id="clConfirm">${editando?"Guardar cambios":"Crear"}</button></div>
+    </div>`);
+  back.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", () => closeModal(back)));
+
+  back.querySelector("#clConfirm").addEventListener("click", () => {
+    const err = back.querySelector("#clErr");
+    const g = id => { const el = back.querySelector(id); return el ? el.value.trim() : ""; };
+    const doc = g("#clDoc"), tel = g("#clTel"), zona = back.querySelector("#clZona").value;
+    let datos;
+    if(esEmp){
+      const razon = g("#clRazon"), contacto = g("#clContacto");
+      if(!razon || !doc || !tel || !contacto || !zona){
+        err.textContent = "Razón social, CIF, teléfono, persona de contacto y zona son obligatorios.";
+        err.classList.remove("hidden"); return;
+      }
+      datos = { tipo:"empresa", razonSocial:razon, doc, telefono:tel, email:g("#clEmail"),
+        direccion:g("#clDir"), localidad:g("#clLoc"), cp:g("#clCp"),
+        contacto, cargoContacto:g("#clCargo"), telContacto:g("#clTelC"), zona, notas:g("#clNotas") };
+    } else {
+      const nombre = g("#clNombre"), apellidos = g("#clApellidos");
+      if(!nombre || !apellidos || !doc || !tel || !zona){
+        err.textContent = "Nombre, apellidos, DNI, teléfono y zona son obligatorios.";
+        err.classList.remove("hidden"); return;
+      }
+      datos = { tipo:"domestico", nombre, apellidos, doc, telefono:tel, email:g("#clEmail"),
+        direccion:g("#clDir"), localidad:g("#clLoc"), cp:g("#clCp"), zona, notas:g("#clNotas") };
+    }
+
+    if(editando){
+      Object.assign(existing, datos);
+      // reflejar nombre/teléfono en tickets vinculados
+      ticketsDeCliente(existing.id).forEach(t => { t.cliente = nombreCliente(existing); t.telefono = existing.telefono; });
+      closeModal(back);
+      renderFicha(existing);
+      refrescarTecnico();
+      toast(esEmp?"Empresa actualizada":"Cliente actualizado", nombreCliente(existing) + " guardado.", "ok", "✓");
+    } else {
+      datos.id = nextClienteId();
+      clientes.push(datos);
+      closeModal(back);
+      renderClientes();
+      toast(esEmp?"Empresa creada ✓":"Cliente creado ✓", nombreCliente(datos) + " añadido a la cartera.", "ok", "✓");
+    }
+  });
+}
+
+function confirmarBorrarCliente(c){
+  const tks = ticketsDeCliente(c.id);
+  const back = openModal(`
+    <div class="modal">
+      <div class="modal-head"><div><h3>Eliminar cliente</h3><p>Esta acción no se puede deshacer</p></div><button class="modal-x" data-close>&times;</button></div>
+      <div class="modal-body">
+        <p style="font-size:14px;color:var(--muted);line-height:1.6">¿Seguro que quieres eliminar a <b style="color:var(--text)">${esc(nombreCliente(c))}</b>?${tks.length?' Sus <b style="color:var(--text)">'+tks.length+' ticket(s)</b> quedarán sin cliente vinculado.':''}</p>
+      </div>
+      <div class="modal-foot"><button class="btn btn-ghost btn-sm" data-close>Cancelar</button><button class="btn btn-danger btn-sm" id="delConfirm">Eliminar cliente</button></div>
+    </div>`);
+  back.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", () => closeModal(back)));
+  back.querySelector("#delConfirm").addEventListener("click", () => {
+    tks.forEach(t => { t.clienteId = null; });
+    clientes = clientes.filter(x => x.id !== c.id);
+    fichaActualId = null;
+    closeModal(back);
+    switchView("clientes");
+    toast("Cliente eliminado", nombreCliente(c) + " se ha eliminado de la cartera.", "warn", "🗑");
+  });
+}
+
+/* --- nuevo ticket desde ficha de cliente --- */
+function modalNuevoTicket(c){
+  const esGerente = sesion.rol === "gerente";
+  const tecOpts = usuarios.filter(u => u.rol === "tecnico" && u.activo)
+    .map(u => `<option value="${u.id}">${esc(u.nombre)}</option>`).join("");
+  const back = openModal(`
+    <div class="modal wide">
+      <div class="modal-head"><div><h3>Nuevo ticket</h3><p>Cliente: ${esc(nombreCliente(c))}</p></div><button class="modal-x" data-close>&times;</button></div>
+      <div class="modal-body">
+        <div id="ntkErr" class="login-err hidden"></div>
+        <div class="detail-grid" style="margin-bottom:14px">
+          <div class="field" style="margin:0"><label>Cliente</label><input type="text" value="${esc(nombreCliente(c))}" disabled></div>
+          <div class="field" style="margin:0"><label>Teléfono</label><input id="ntkTel" type="text" value="${esc(c.telefono||"")}"></div>
+          <div class="field" style="margin:0"><label>Zona *</label><select id="ntkZona">${ZONAS.map(z=>`<option ${z===c.zona?"selected":""}>${z}</option>`).join("")}</select></div>
+          <div class="field" style="margin:0"><label>Urgencia</label><select id="ntkUrg"><option value="alta">Alta</option><option value="media" selected>Media</option><option value="baja">Baja</option></select></div>
+          ${esGerente?`<div class="field" style="margin:0;grid-column:1/-1"><label>Técnico asignado</label><select id="ntkTec"><option value="">Sin asignar</option>${tecOpts}</select></div>`:''}
+        </div>
+        <div class="field" style="margin:0"><label>Avería *</label><textarea id="ntkAveria" placeholder="Describe la avería o servicio solicitado..."></textarea></div>
+      </div>
+      <div class="modal-foot"><button class="btn btn-ghost btn-sm" data-close>Cancelar</button><button class="btn btn-primary btn-sm" id="ntkConfirm">Crear ticket</button></div>
+    </div>`);
+  back.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", () => closeModal(back)));
+  back.querySelector("#ntkConfirm").addEventListener("click", () => {
+    const averia = back.querySelector("#ntkAveria").value.trim();
+    const err = back.querySelector("#ntkErr");
+    if(!averia){ err.textContent = "La descripción de la avería es obligatoria."; err.classList.remove("hidden"); return; }
+    const zona = back.querySelector("#ntkZona").value;
+    const urgencia = back.querySelector("#ntkUrg").value;
+    const tel = back.querySelector("#ntkTel").value.trim();
+    const tecnicoId = esGerente ? (back.querySelector("#ntkTec").value || null) : sesion.id;
+    const now = new Date().toISOString();
+    const estado = tecnicoId ? "asignado" : "nuevo";
+    const historial = [{estado:"nuevo", fecha:now}];
+    if(tecnicoId) historial.push({estado:"asignado", fecha:now});
+    const tk = {
+      id: nextTicketId(), clienteId:c.id, cliente:nombreCliente(c), telefono:tel||c.telefono,
+      averia, zona, urgencia, tecnicoId, estado, notas:"", horas:0,
+      fechaCreacion:now, agendaDia:"", agendaHora:"", historial
+    };
+    tickets.push(tk);
+    closeModal(back);
+    fichaActualId = c.id;
+    refrescarTecnico();
+    toast("Ticket creado", "#" + tk.id + " para " + nombreCliente(c), "ok", "✓");
+  });
 }
 
 /* ==========================================================
