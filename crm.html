@@ -210,6 +210,28 @@ td.num{font-variant-numeric:tabular-nums;font-weight:600}
 .cal-info{flex:1;min-width:0}
 .cal-info b{font-size:15px}
 .cal-info span{display:block;font-size:13px;color:var(--muted)}
+.cal-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+
+/* cita chip (listado / ficha) */
+.cita-chip{color:#6fb4ff;background:rgba(80,160,255,.12);border:1px solid rgba(80,160,255,.28);border-radius:999px;padding:2px 9px;font-size:12px;font-weight:600}
+.agenda-box.empty-cita{border-style:dashed}
+
+/* panel global agrupado por técnico */
+.tecgrp{padding:0;overflow:hidden;margin-bottom:16px}
+.tecgrp-head{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;padding:16px 18px;border-bottom:1px solid var(--line)}
+.tecgrp-id{display:flex;align-items:center;gap:12px}
+.tecgrp-id b{font-size:15px;font-weight:600;display:block}
+.tecgrp-id span{font-size:12.5px;color:var(--muted)}
+.est-chips{display:flex;gap:8px;flex-wrap:wrap}
+.est-chip{display:inline-flex;align-items:center;gap:5px;font-size:13px;font-weight:700;color:var(--text)}
+.tecgrp-list{display:flex;flex-direction:column}
+.gt-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 18px;border-bottom:1px solid var(--line);cursor:pointer;transition:background .15s}
+.gt-row:last-child{border-bottom:none}
+.gt-row:hover{background:var(--bg2)}
+.gt-main{min-width:0;flex:1}
+.gt-main b{font-size:14px}
+.gt-av{color:var(--muted);font-size:13px;margin-left:8px}
+.gt-meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);white-space:nowrap}
 
 /* profile */
 .profile-card{max-width:560px;padding:26px}
@@ -400,7 +422,7 @@ td.num{font-variant-numeric:tabular-nums;font-weight:600}
       <button type="submit" class="btn btn-primary" style="width:100%;padding:13px;margin-top:6px">Entrar</button>
     </form>
     <div class="login-hint">
-      <b>Demo</b> — carlos / demo · luis / demo · gerente / demo<br>
+      <b>Demo</b> — carlos / demo · gerente / demo<br>
       Clave gerencia: <b>admin2026</b>
     </div>
   </div>
@@ -426,7 +448,7 @@ td.num{font-variant-numeric:tabular-nums;font-weight:600}
     </button>
     <button class="navitem" data-view="calendario">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
-      Calendario
+      Agenda
     </button>
     <button class="navitem" data-view="perfil">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>
@@ -486,26 +508,20 @@ td.num{font-variant-numeric:tabular-nums;font-weight:600}
       <div class="ticket-list" id="techTicketList"></div>
     </section>
 
-    <!-- VIEW: CLIENTES (lista) -->
+    <!-- VIEW: CLIENTES (lista, derivada de los avisos reales) -->
     <section class="view" id="view-clientes">
       <div class="view-head">
-        <div><h2>Clientes</h2><p id="clientesSub">Cartera de clientes domésticos y empresas</p></div>
-        <div class="head-actions" id="clientesActions"></div>
+        <div><h2>Clientes</h2><p id="clientesSub">Clientes derivados de los avisos registrados</p></div>
       </div>
       <div class="filters">
-        <select id="fTipoCliente">
-          <option value="">Todos</option>
-          <option value="domestico">Doméstico</option>
-          <option value="empresa">Empresa</option>
-        </select>
         <div class="search-box">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
-          <input type="text" id="buscarCliente" placeholder="Buscar por nombre, DNI/CIF o teléfono...">
+          <input type="text" id="buscarCliente" placeholder="Buscar por nombre o teléfono...">
         </div>
       </div>
       <div class="table-wrap">
         <table>
-          <thead><tr><th>Tipo</th><th>Nombre / Razón social</th><th>DNI / CIF</th><th>Teléfono</th><th>Zona</th><th>Tickets</th><th>Último ticket</th><th></th></tr></thead>
+          <thead><tr><th>Nombre</th><th>Teléfono</th><th>Zona</th><th>Avisos</th><th>Último aviso</th><th></th></tr></thead>
           <tbody id="clientesTableBody"></tbody>
         </table>
       </div>
@@ -514,9 +530,9 @@ td.num{font-variant-numeric:tabular-nums;font-weight:600}
     <!-- VIEW: FICHA CLIENTE (detalle) -->
     <section class="view" id="view-ficha"></section>
 
-    <!-- VIEW: CALENDARIO -->
+    <!-- VIEW: AGENDA -->
     <section class="view" id="view-calendario">
-      <div class="view-head"><div><h2>Calendario</h2><p>Tickets agendados con fecha y hora</p></div></div>
+      <div class="view-head"><div><h2>Agenda</h2><p>Visitas agendadas con fecha y hora</p></div></div>
       <div class="cal-list" id="calList"></div>
     </section>
 
@@ -539,10 +555,9 @@ td.num{font-variant-numeric:tabular-nums;font-weight:600}
         <button class="subtab" data-gsec="accesos">Log de accesos</button>
       </div>
 
-      <!-- G: PANEL GLOBAL -->
+      <!-- G: PANEL GLOBAL (agrupado por técnico) -->
       <div class="gsec active" id="gsec-global">
         <div class="filters">
-          <select id="fTecnico"><option value="">Todos los técnicos</option></select>
           <select id="fEstadoG">
             <option value="">Todos los estados</option>
             <option value="nuevo">Nuevo</option>
@@ -552,17 +567,8 @@ td.num{font-variant-numeric:tabular-nums;font-weight:600}
             <option value="cerrado">Cerrado</option>
             <option value="cancelado">Cancelado</option>
           </select>
-          <select id="fZona">
-            <option value="">Todas las zonas</option>
-            <option>Norte</option><option>Sur</option><option>Este</option><option>Oeste</option>
-          </select>
         </div>
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>Cliente</th><th>Avería</th><th>Zona</th><th>Técnico</th><th>Estado</th><th>Fecha</th><th>Reseña</th></tr></thead>
-            <tbody id="globalTableBody"></tbody>
-          </table>
-        </div>
+        <div id="globalGroups"></div>
       </div>
 
       <!-- G: TECNICOS -->
@@ -577,29 +583,18 @@ td.num{font-variant-numeric:tabular-nums;font-weight:600}
         <div class="tec-grid" id="tecGrid"></div>
       </div>
 
-      <!-- G: GRAFICAS -->
+      <!-- G: RENDIMIENTO (KPIs reales) -->
       <div class="gsec" id="gsec-graficas">
-        <div class="filters">
-          <select id="fRango">
-            <option value="mes">Este mes</option>
-            <option value="semana">Esta semana</option>
-          </select>
+        <div class="kpis" id="rendKpis"></div>
+        <div class="card chart-card" style="margin-bottom:24px">
+          <h4>Distribución por categoría de servicio</h4>
+          <div class="bars" id="catBars"></div>
         </div>
-        <div class="charts-grid">
-          <div class="card chart-card">
-            <h4>Tickets cerrados por técnico</h4>
-            <div class="bars" id="barsCerrados"></div>
-          </div>
-          <div class="card chart-card">
-            <h4>Tiempo medio de cierre (horas)</h4>
-            <div id="lineChartWrap"></div>
-          </div>
-        </div>
-        <h3 class="section-title">Ranking de rendimiento</h3>
+        <h3 class="section-title">Rendimiento por técnico</h3>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>#</th><th>Técnico</th><th>Tickets cerrados</th><th>Horas totales</th><th>Media cierre</th></tr></thead>
-            <tbody id="rankingBody"></tbody>
+            <thead><tr><th>Técnico</th><th>Total</th><th>Atendidos</th><th>Cerrados</th><th>% cierre</th><th>Tiempo medio</th><th>Reseñas</th></tr></thead>
+            <tbody id="rendBody"></tbody>
           </table>
         </div>
       </div>
@@ -631,109 +626,26 @@ td.num{font-variant-numeric:tabular-nums;font-weight:600}
 const GMB_URL = "https://maps.app.goo.gl/3b9zDZrC8uvJfmYt7";
 const CLAVE_GERENCIA = "admin2026"; // NUNCA en localStorage
 
-const ZONAS = ["Norte", "Sur", "Este", "Oeste"];
+// Sector real del CRM: servicios técnicos del hogar
+// (electricidad, fontanería, calefacción, climatización).
+const ZONAS = ["Norte", "Sur", "Este", "Oeste", "Majadahonda", "Las Rozas", "Boadilla / Pozuelo", "Otro Madrid"];
 
-// Técnicos + gerente. La contraseña y la clave viven solo en runtime.
+// Login local (solo credenciales de acceso). Los datos operativos (tickets,
+// clientes, técnicos) viven en Supabase. Carlos cubre todas las zonas; Luis
+// está desactivado en Supabase y ya no figura aquí.
 let usuarios = [
-  { id:"t1", usuario:"carlos", pass:"demo", nombre:"Carlos Ruiz", rol:"tecnico",
-    zonas:["Norte","Oeste"], activo:true, tel:"611 234 567",
-    wa_number:"34611234567", apikey:"", ultimoAcceso:"2026-07-04T08:12:00" },
-  { id:"t2", usuario:"luis", pass:"demo", nombre:"Luis Gómez", rol:"tecnico",
-    zonas:["Sur","Este"], activo:true, tel:"622 345 678",
-    wa_number:"34622345678", apikey:"", ultimoAcceso:"2026-07-04T09:40:00" },
+  { id:"t1", usuario:"carlos", pass:"demo", nombre:"Carlos Ramos", rol:"tecnico",
+    zonas:ZONAS.slice(), activo:true, tel:"611 111 111",
+    wa_number:"34611111111", apikey:"", ultimoAcceso:"2026-07-06T08:12:00" },
   { id:"g1", usuario:"gerente", pass:"demo", nombre:"Marta Serrano", rol:"gerente",
     zonas:ZONAS.slice(), activo:true, tel:"600 111 222",
-    wa_number:"34600111222", apikey:"", ultimoAcceso:"2026-07-05T07:30:00" }
+    wa_number:"34600111222", apikey:"", ultimoAcceso:"2026-07-06T07:30:00" }
 ];
 
-// 9 tickets demo — vinculados a clientes por clienteId.
-// NOTA: desde feat/tickets-reales, las vistas "Mis tickets" y "Panel global"
-// (gerencia) usan datos REALES de Supabase (ver ticketsReal / autoservice-tickets).
-// Este array demo se mantiene SOLO para las vistas Clientes (fichas/historial) y
-// Calendario, que siguen operando sobre la cartera local de demostración.
-let tickets = [
-  // --- María García (c1) → los 3 tickets de Carlos (Norte/Oeste) ---
-  { id:"AV-1042", clienteId:"c1", cliente:"María García", telefono:"612 345 678", averia:"Cambio de aceite y filtro urgente",
-    zona:"Norte", urgencia:"media", tecnicoId:"t1", estado:"asignado", notas:"", horas:0,
-    fechaCreacion:"2026-07-05T07:50:00", agendaDia:"", agendaHora:"",
-    historial:[{estado:"nuevo",fecha:"2026-07-05T07:50:00"},{estado:"asignado",fecha:"2026-07-05T08:05:00"}] },
-
-  { id:"AV-1039", clienteId:"c1", cliente:"María García", telefono:"612 345 678", averia:"Frenos hacen ruido al pisar",
-    zona:"Oeste", urgencia:"alta", tecnicoId:"t1", estado:"atendido", notas:"Pastillas muy gastadas, pendiente presupuesto.", horas:1.5,
-    fechaCreacion:"2026-07-04T10:20:00", agendaDia:"", agendaHora:"",
-    historial:[{estado:"nuevo",fecha:"2026-07-04T10:20:00"},{estado:"asignado",fecha:"2026-07-04T10:35:00"},{estado:"atendido",fecha:"2026-07-04T12:10:00"}] },
-
-  { id:"AV-1021", clienteId:"c1", cliente:"María García", telefono:"612 345 678", averia:"Revisión pre-ITV completa",
-    zona:"Norte", urgencia:"baja", tecnicoId:"t1", estado:"cerrado", notas:"Todo correcto, apto para ITV. Clienta avisada.", horas:3,
-    fechaCreacion:"2026-06-28T09:00:00", agendaDia:"", agendaHora:"",
-    historial:[{estado:"nuevo",fecha:"2026-06-28T09:00:00"},{estado:"asignado",fecha:"2026-06-28T09:20:00"},{estado:"atendido",fecha:"2026-06-28T11:00:00"},{estado:"cerrado",fecha:"2026-06-28T14:30:00"}] },
-
-  // --- Juan López (c2) → Luis (Este) ---
-  { id:"AV-1040", clienteId:"c2", cliente:"Juan López", telefono:"623 456 789", averia:"Cambio de neumáticos (4) + equilibrado",
-    zona:"Este", urgencia:"media", tecnicoId:"t2", estado:"atendido", notas:"Neumáticos pedidos, llegan mañana.", horas:0.5,
-    fechaCreacion:"2026-07-04T11:15:00", agendaDia:"", agendaHora:"",
-    historial:[{estado:"nuevo",fecha:"2026-07-04T11:15:00"},{estado:"asignado",fecha:"2026-07-04T11:30:00"},{estado:"atendido",fecha:"2026-07-04T15:00:00"}] },
-
-  { id:"AV-1033", clienteId:"c2", cliente:"Juan López", telefono:"623 456 789", averia:"Aire acondicionado no enfría",
-    zona:"Este", urgencia:"media", tecnicoId:"t2", estado:"agendado", notas:"Cliente prefiere primera hora.", horas:0,
-    fechaCreacion:"2026-07-02T16:40:00", agendaDia:"2026-07-08", agendaHora:"09:30",
-    historial:[{estado:"nuevo",fecha:"2026-07-02T16:40:00"},{estado:"asignado",fecha:"2026-07-02T17:00:00"},{estado:"atendido",fecha:"2026-07-03T10:00:00"},{estado:"agendado",fecha:"2026-07-03T10:20:00"}] },
-
-  // --- Ana Martínez (c3) → Luis (Sur) ---
-  { id:"AV-1045", clienteId:"c3", cliente:"Ana Martínez", telefono:"634 567 890", averia:"El coche no arranca en frío",
-    zona:"Sur", urgencia:"alta", tecnicoId:"t2", estado:"nuevo", notas:"", horas:0,
-    fechaCreacion:"2026-07-05T08:30:00", agendaDia:"", agendaHora:"",
-    historial:[{estado:"nuevo",fecha:"2026-07-05T08:30:00"}] },
-
-  // --- Reformas García SL (c4) → empresa (Oeste/Sur) ---
-  { id:"AV-1046", clienteId:"c4", cliente:"Reformas García SL", telefono:"667 890 123", averia:"Batería agotada furgoneta de reparto",
-    zona:"Sur", urgencia:"alta", tecnicoId:null, estado:"nuevo", notas:"", horas:0,
-    fechaCreacion:"2026-07-05T09:10:00", agendaDia:"", agendaHora:"",
-    historial:[{estado:"nuevo",fecha:"2026-07-05T09:10:00"}] },
-
-  { id:"AV-1048", clienteId:"c4", cliente:"Reformas García SL", telefono:"667 890 123", averia:"Revisión de flota de obra (3 furgonetas)",
-    zona:"Oeste", urgencia:"media", tecnicoId:"t1", estado:"asignado", notas:"", horas:0,
-    fechaCreacion:"2026-07-05T09:40:00", agendaDia:"", agendaHora:"",
-    historial:[{estado:"nuevo",fecha:"2026-07-05T09:40:00"},{estado:"asignado",fecha:"2026-07-05T09:55:00"}] },
-
-  // --- Instalaciones Norte SL (c5) → empresa (Norte) ---
-  { id:"AV-1047", clienteId:"c5", cliente:"Instalaciones Norte SL", telefono:"678 901 234", averia:"Luz de motor encendida",
-    zona:"Norte", urgencia:"baja", tecnicoId:null, estado:"nuevo", notas:"", horas:0,
-    fechaCreacion:"2026-07-05T09:25:00", agendaDia:"", agendaHora:"",
-    historial:[{estado:"nuevo",fecha:"2026-07-05T09:25:00"}] }
-];
-
-// Clientes (domésticos y empresas) — vinculados a tickets por clienteId
-let clientes = [
-  { id:"c1", tipo:"domestico", nombre:"María", apellidos:"García", doc:"34567890A",
-    telefono:"612 345 678", email:"maria.garcia@email.com",
-    direccion:"Calle Mayor 12, 2ºB", localidad:"Madrid", cp:"28013",
-    zona:"Norte", notas:"Clienta habitual, muy puntual con los pagos." },
-  { id:"c2", tipo:"domestico", nombre:"Juan", apellidos:"López", doc:"23456789B",
-    telefono:"623 456 789", email:"",
-    direccion:"Avda. La Paz 45", localidad:"Madrid", cp:"28009",
-    zona:"Norte", notas:"" },
-  { id:"c3", tipo:"domestico", nombre:"Ana", apellidos:"Martínez", doc:"45678901C",
-    telefono:"634 567 890", email:"",
-    direccion:"Calle Pez 8, 1ºA", localidad:"Madrid", cp:"28004",
-    zona:"Sur", notas:"" },
-  { id:"c4", tipo:"empresa", razonSocial:"Reformas García SL", doc:"B12345678",
-    telefono:"667 890 123", email:"info@reformasgarcia.es",
-    direccion:"Polígono Oeste, Nave 12", localidad:"Madrid", cp:"28914",
-    contacto:"Pedro García", cargoContacto:"CEO", telContacto:"",
-    zona:"Oeste", notas:"Flota de 3 furgonetas de obra." },
-  { id:"c5", tipo:"empresa", razonSocial:"Instalaciones Norte SL", doc:"B98765432",
-    telefono:"678 901 234", email:"contacto@instalacionesnorte.es",
-    direccion:"Calle Industria 3", localidad:"Madrid", cp:"28034",
-    contacto:"Carmen Ruiz", cargoContacto:"Gerente", telContacto:"",
-    zona:"Norte", notas:"" }
-];
-
-// Log de accesos (se rellena en login; precargamos histórico demo)
+// Log de accesos (se rellena en login; histórico demo mínimo)
 let accesos = [
-  { id:"g1", nombre:"Marta Serrano", rol:"gerente", fecha:"2026-07-05T07:30:00" },
-  { id:"t2", nombre:"Luis Gómez",   rol:"tecnico", fecha:"2026-07-04T09:40:00" },
-  { id:"t1", nombre:"Carlos Ruiz",  rol:"tecnico", fecha:"2026-07-04T08:12:00" }
+  { id:"g1", nombre:"Marta Serrano", rol:"gerente", fecha:"2026-07-06T07:30:00" },
+  { id:"t1", nombre:"Carlos Ramos",  rol:"tecnico", fecha:"2026-07-06T08:12:00" }
 ];
 
 /* ==========================================================
@@ -776,8 +688,8 @@ function fmtDiaLargo(iso){
 }
 function badgeEstado(e){ return '<span class="badge badge-'+e+'">'+esc(ESTADO_LABEL[e]||e)+'</span>'; }
 function badgeUrg(u){
-  const map={alta:"badge-urg-alta",media:"badge-urg-media",baja:"badge-urg-baja"};
-  return '<span class="badge '+(map[u]||"badge-urg-baja")+'">'+esc(u)+'</span>';
+  const map={alta:"badge-urg-alta",media:"badge-urg-media",normal:"badge-urg-media",baja:"badge-urg-baja"};
+  return '<span class="badge '+(map[u]||"badge-urg-baja")+'">'+esc(u||"—")+'</span>';
 }
 function iniciales(nombre){
   return nombre.split(" ").filter(Boolean).slice(0,2).map(w=>w[0].toUpperCase()).join("");
@@ -788,22 +700,22 @@ function fmtFechaMini(iso){
   return d.toLocaleDateString("es-ES",{day:"2-digit",month:"short"});
 }
 
-/* ---- clientes: helpers y permisos ---- */
-function getCliente(id){ return clientes.find(c => c.id === id) || null; }
-function nombreCliente(c){ return c.tipo === "empresa" ? c.razonSocial : (c.nombre + " " + c.apellidos).trim(); }
-function ticketsDeCliente(cid){ return tickets.filter(t => t.clienteId === cid); }
-function clientesVisibles(){
-  if(sesion.rol === "gerente") return clientes.slice();
-  // técnico: solo clientes con al menos un ticket asignado a él
-  const ids = new Set(tickets.filter(t => t.tecnicoId === sesion.id).map(t => t.clienteId).filter(Boolean));
-  return clientes.filter(c => ids.has(c.id));
+/* ---- clientes: derivados de los tickets reales ----
+   No hay cartera local: un "cliente" es un teléfono con uno o más avisos. */
+function telKey(tel){ return String(tel||"").replace(/\D/g,""); }
+function ticketsDeTelefono(tel){ const k = telKey(tel); return ticketsReal.filter(t => telKey(t.telefono) === k); }
+function clientesReales(){
+  const map = new Map();
+  ticketsReal.forEach(t => {
+    const k = telKey(t.telefono);
+    if(!k) return;
+    let c = map.get(k);
+    if(!c){ c = { key:k, nombre:t.cliente, telefono:t.telefono, zona:t.zona, tickets:[] }; map.set(k, c); }
+    c.tickets.push(t);
+    if(t.cliente && !c.nombre) c.nombre = t.cliente;
+  });
+  return Array.from(map.values());
 }
-function puedeVerCliente(id){ return sesion.rol === "gerente" || clientesVisibles().some(c => c.id === id); }
-function nextTicketId(){
-  const nums = tickets.map(t => parseInt(String(t.id).replace(/\D/g,""), 10)).filter(n => !isNaN(n));
-  return "AV-" + ((nums.length ? Math.max(...nums) : 1000) + 1);
-}
-function nextClienteId(){ return "c" + Date.now().toString().slice(-7); }
 
 /* ==========================================================
    TOASTS
@@ -883,12 +795,10 @@ function entrarApp(){
   else { navG.classList.add("hidden"); }
   setGerenciaLockUI();
 
-  // Vista por defecto
-  switchView("tickets");
-  cargarTicketsReales();   // "Mis tickets" con datos reales de Supabase
-  renderCalendario();
+  // Vista por defecto — switchView("tickets") dispara cargarTicketsReales(),
+  // que a su vez pinta Mis tickets, Agenda y Clientes con datos reales.
   renderPerfil();
-  renderClientes();
+  switchView("tickets");
 }
 
 function logout(){
@@ -920,12 +830,11 @@ function switchView(view){
   const target = $("#view-" + view);
   if(target) target.classList.add("active");
 
-  const titles = { tickets:"Mis tickets", clientes:"Clientes", calendario:"Calendario", perfil:"Mi perfil", gerencia:"Gerencia" };
+  const titles = { tickets:"Mis tickets", clientes:"Clientes", calendario:"Agenda", perfil:"Mi perfil", gerencia:"Gerencia" };
   $("#pageTitle").textContent = titles[view] || "";
 
-  if(view === "tickets") cargarTicketsReales();
+  if(view === "tickets" || view === "clientes" || view === "calendario") cargarTicketsReales();
   if(view === "gerencia") renderGerencia();
-  if(view === "clientes") renderClientes();
   closeMobileNav();
 }
 
@@ -942,11 +851,6 @@ $("#navBackdrop").addEventListener("click", closeMobileNav);
 /* ==========================================================
    VISTA TÉCNICO — DASHBOARD
    ========================================================== */
-function misTickets(){
-  // SOLO para el Calendario demo (local). Las vistas "Mis tickets" y "Panel global"
-  // usan datos reales (ticketsReal). Ver bloque TICKETS REALES más abajo.
-  return tickets.filter(t => t.tecnicoId === sesion.id);
-}
 
 /* ==========================================================
    TICKETS REALES  (Supabase · Edge Function autoservice-tickets)
@@ -991,9 +895,19 @@ function mapTicketReal(r){
     resenaEnviada: !!r.resena_enviada,
     fechaCreacion: r.created_at,
     cerradoAt: r.cerrado_at || null,
+    citaAt: r.cita_at || null,
     clienteId: null,   // los avisos reales no enlazan con la cartera local de Clientes
     historial: hist
   };
+}
+
+// ¿Se puede agendar/gestionar una cita en este ticket? (no cerrado ni cancelado)
+function agendable(t){ return t.estado !== "cerrado" && t.estado !== "cancelado"; }
+function fmtCita(iso){
+  if(!iso) return "—";
+  const d = new Date(iso); if(isNaN(d)) return iso;
+  return d.toLocaleDateString("es-ES",{weekday:"short",day:"2-digit",month:"short"}) + " · " +
+         d.toLocaleTimeString("es-ES",{hour:"2-digit",minute:"2-digit"});
 }
 
 async function cargarTicketsReales(){
@@ -1010,13 +924,16 @@ async function cargarTicketsReales(){
   pintarTicketsViews();
 }
 
-// Repinta las vistas que consumen datos reales, según el estado actual.
+// Repinta todas las vistas que consumen datos reales, según el estado actual.
 function pintarTicketsViews(){
   if(!sesion) return;
   renderTecnicoDashboard();
+  renderCalendario();
+  renderClientes();
+  if(fichaActualTel && $("#view-ficha").classList.contains("active")) renderFicha(fichaActualTel);
   if(sesion.rol === "gerente" && gerenciaUnlocked){
-    poblarFiltroTecnicosReal();
     renderGlobalTable();
+    renderGraficas();
   }
 }
 
@@ -1040,7 +957,7 @@ function renderTecnicoDashboard(){
 
   $("#ticketsTitle").textContent = "Mis tickets";
   $("#ticketsSub").textContent = sesion.rol === "gerente"
-    ? "Todos los avisos del taller (datos reales)"
+    ? "Todos los avisos del servicio (datos reales)"
     : "Avisos asignados a " + sesion.nombre + " · Zonas: " + (getUser(sesion.id).zonas.join(", "));
 
   renderTechTicketList();
@@ -1092,6 +1009,7 @@ function ticketRow(t){
         <span>#${esc(avisoNum(t))}</span>
         <span>Zona ${esc(t.zona)}</span>
         <span>${esc(t.telefono)}</span>
+        ${t.citaAt ? '<span class="cita-chip">📅 '+esc(fmtCita(t.citaAt))+'</span>' : ''}
       </div>
     </div>
     <div class="t-right">
@@ -1125,6 +1043,25 @@ function abrirTicketReal(id){
     ? `<div class="actions-row">${acciones.map(a=>`<button class="btn btn-sm ${a.cls}" data-act="${a.act}">${a.label}</button>`).join("")}</div>`
     : `<div class="actions-row"><span style="color:var(--muted);font-size:13px">Ticket ${esc(ESTADO_LABEL[t.estado]||t.estado)} — sin acciones disponibles.</span></div>`;
 
+  // Bloque Visita (cita) — solo en tickets no cerrados/cancelados
+  let visitaHtml = "";
+  if(agendable(t)){
+    visitaHtml = t.citaAt
+      ? `<div class="agenda-box">
+           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+           <div style="flex:1"><span style="font-size:12px;color:var(--muted)">Visita agendada</span><br><b>${esc(fmtCita(t.citaAt))}</b></div>
+           <div class="actions-row" style="margin:0">
+             <button class="btn btn-sm" data-cita="reprog">Reprogramar</button>
+             <button class="btn btn-sm btn-danger" data-cita="quitar">Quitar cita</button>
+           </div>
+         </div>`
+      : `<div class="agenda-box empty-cita">
+           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+           <div style="flex:1"><span style="font-size:12px;color:var(--muted)">Sin visita agendada</span></div>
+           <button class="btn btn-primary btn-sm" data-cita="agendar">Agendar visita</button>
+         </div>`;
+  }
+
   const back = openModal(`
     <div class="modal wide">
       <div class="modal-head">
@@ -1145,7 +1082,8 @@ function abrirTicketReal(id){
           <div class="di"><div class="l">Técnico</div><div class="v">${esc(t.tecnicoNombre)}</div></div>
           <div class="di"><div class="l">Reseña</div><div class="v">${t.resenaEnviada?'<span style="color:var(--g)">Enviada</span>':'<span style="color:var(--muted)">Pendiente</span>'}</div></div>
         </div>
-        <div class="l" style="font-size:12px;color:var(--muted);margin-bottom:6px">Historial de estados</div>
+        ${visitaHtml ? '<div class="l" style="font-size:12px;color:var(--muted);margin:4px 0 6px">Visita</div>'+visitaHtml : ''}
+        <div class="l" style="font-size:12px;color:var(--muted);margin:14px 0 6px">Historial de estados</div>
         <div class="hist">${histHtml}</div>
         ${accHtml}
       </div>
@@ -1153,6 +1091,15 @@ function abrirTicketReal(id){
   `);
 
   back.querySelector("[data-close]").addEventListener("click", ()=>closeModal(back));
+
+  // Botones de cita (agendar / reprogramar / quitar)
+  back.querySelectorAll("[data-cita]").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      const modo = btn.dataset.cita;
+      if(modo === "quitar"){ guardarCita(t, null, back); }
+      else { closeModal(back); modalCita(t); }
+    });
+  });
 
   back.querySelectorAll("[data-act]").forEach(btn=>{
     btn.addEventListener("click", async ()=>{
@@ -1178,203 +1125,94 @@ function abrirTicketReal(id){
 /* ==========================================================
    FICHA DE TICKET  (detalle + acciones de estado)
    ========================================================== */
-function accionesDisponibles(t){
-  // devuelve lista de {label, class, fn}
-  const acc = [];
-  if(t.estado === "cerrado") return acc; // cerrado no cambia
-  if(t.estado === "nuevo" || t.estado === "asignado"){
-    acc.push({label:"Marcar atendido", cls:"btn-g", act:"atendido"});
-  }
-  if(t.estado === "atendido"){
-    acc.push({label:"Fuera de hora", cls:"", act:"fuera_de_hora"});
-    acc.push({label:"Agendar visita", cls:"", act:"agendar"});
-  }
-  if(t.estado === "fuera_de_hora"){
-    acc.push({label:"Agendar visita", cls:"", act:"agendar"});
-  }
-  if(t.estado === "agendado"){
-    acc.push({label:"Marcar atendido", cls:"btn-g", act:"atendido"});
-  }
-  // cerrar siempre disponible mientras no esté cerrado
-  acc.push({label:"Cerrar ticket", cls:"btn-danger", act:"cerrar"});
-  return acc;
-}
-
-function abrirTicket(id){
-  const t = tickets.find(x => x.id === id);
-  if(!t) return;
-
-  // técnico solo abre los suyos; gerencia puede abrir cualquiera pero en modo lectura de acciones si no es suyo
-  const esMio = t.tecnicoId === sesion.id;
-
-  const histHtml = (t.historial||[]).map(h =>
-    `<div class="hist-item"><div class="hist-dot"></div><div class="hc"><b>${esc(ESTADO_LABEL[h.estado]||h.estado)}</b><span>${esc(fmtFecha(h.fecha))}</span></div></div>`
-  ).join("");
-
-  const agendaHtml = (t.estado==="agendado" && t.agendaDia) ?
-    `<div class="agenda-box">
-       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
-       <div><span style="font-size:12px;color:var(--muted)">Visita agendada</span><br><b>${esc(fmtDiaLargo(t.agendaDia))} · ${esc(t.agendaHora)}</b></div>
-     </div>` : "";
-
-  const acciones = esMio ? accionesDisponibles(t) : [];
-  const accHtml = acciones.length
-    ? `<div class="actions-row">${acciones.map(a=>`<button class="btn btn-sm ${a.cls}" data-act="${a.act}">${a.label}</button>`).join("")}</div>`
-    : (esMio ? '<div class="actions-row"><span style="color:var(--muted);font-size:13px">Ticket cerrado — sin acciones disponibles.</span></div>'
-             : '<div class="actions-row"><span style="color:var(--muted);font-size:13px">Vista de gerencia (solo lectura de acciones).</span></div>');
-
-  const back = openModal(`
-    <div class="modal wide">
-      <div class="modal-head">
-        <div>
-          <h3>${esc(t.cliente)}</h3>
-          <p>Ticket #${esc(t.id)} · ${badgeEstado(t.estado)}</p>
-        </div>
-        <button class="modal-x" data-close>&times;</button>
-      </div>
-      <div class="modal-body">
-        <div class="detail-grid">
-          <div class="di"><div class="l">Teléfono</div><div class="v">${esc(t.telefono)}</div></div>
-          <div class="di"><div class="l">Zona</div><div class="v">${esc(t.zona)}</div></div>
-          <div class="di"><div class="l">Urgencia</div><div class="v">${badgeUrg(t.urgencia)}</div></div>
-          <div class="di"><div class="l">Fecha creación</div><div class="v">${esc(fmtFecha(t.fechaCreacion))}</div></div>
-          <div class="di" style="grid-column:1/-1"><div class="l">Avería</div><div class="v">${esc(t.averia)}</div></div>
-          ${t.horas>0?`<div class="di"><div class="l">Horas empleadas</div><div class="v">${t.horas} h</div></div>`:''}
-          <div class="di"><div class="l">Técnico</div><div class="v">${esc(nombreTecnico(t.tecnicoId))}</div></div>
-        </div>
-        ${agendaHtml}
-        <div class="l" style="font-size:12px;color:var(--muted);margin-bottom:6px">Historial de estados</div>
-        <div class="hist">${histHtml}</div>
-        <div class="field">
-          <label for="tkNotas">Notas del técnico</label>
-          <textarea id="tkNotas" ${esMio?'':'disabled'} placeholder="Añade notas sobre la intervención...">${esc(t.notas)}</textarea>
-        </div>
-        ${esMio ? '<button class="btn btn-sm" id="btnGuardarNotas" style="margin-top:4px">Guardar notas</button>' : ''}
-        ${accHtml}
-      </div>
-    </div>
-  `);
-
-  back.querySelector("[data-close]").addEventListener("click", ()=>closeModal(back));
-
-  if(esMio){
-    const btnNotas = back.querySelector("#btnGuardarNotas");
-    if(btnNotas) btnNotas.addEventListener("click", ()=>{
-      t.notas = back.querySelector("#tkNotas").value;
-      toast("Notas guardadas","Se actualizó la ficha del ticket.","ok","✓");
-    });
-
-    back.querySelectorAll("[data-act]").forEach(btn=>{
-      btn.addEventListener("click", ()=>{
-        // guardar notas actuales antes de cambiar estado
-        t.notas = back.querySelector("#tkNotas").value;
-        const act = btn.dataset.act;
-        if(act === "agendar"){ closeModal(back); modalAgendar(t); }
-        else if(act === "cerrar"){ closeModal(back); modalCerrar(t); }
-        else { cambiarEstado(t, act); closeModal(back); refrescarTecnico(); }
-      });
-    });
-  }
-}
-
-function cambiarEstado(t, nuevo){
-  t.estado = nuevo;
-  t.historial.push({ estado:nuevo, fecha:new Date().toISOString() });
-  toast("Estado actualizado", "Ticket #"+t.id+" → "+(ESTADO_LABEL[nuevo]||nuevo), "info", "↻");
-}
-
-/* --- modal AGENDAR (día + hora) --- */
-function modalAgendar(t){
+/* --- CITA: modal de agendar/reprogramar + guardado vía API --- */
+function modalCita(t){
   const hoy = new Date().toISOString().slice(0,10);
-  const back = openModal(`
-    <div class="modal">
-      <div class="modal-head"><div><h3>Agendar visita</h3><p>Ticket #${esc(t.id)} · ${esc(t.cliente)}</p></div><button class="modal-x" data-close>&times;</button></div>
-      <div class="modal-body">
-        <div class="field"><label for="agDia">Día</label><input type="date" id="agDia" min="${hoy}" value="${t.agendaDia||hoy}"></div>
-        <div class="field"><label for="agHora">Hora</label><input type="time" id="agHora" value="${t.agendaHora||'09:00'}"></div>
-      </div>
-      <div class="modal-foot">
-        <button class="btn btn-ghost btn-sm" data-close>Cancelar</button>
-        <button class="btn btn-primary btn-sm" id="agConfirm">Confirmar agenda</button>
-      </div>
-    </div>
-  `);
-  back.querySelectorAll("[data-close]").forEach(b=>b.addEventListener("click",()=>closeModal(back)));
-  back.querySelector("#agConfirm").addEventListener("click", ()=>{
-    const dia = back.querySelector("#agDia").value;
-    const hora = back.querySelector("#agHora").value;
-    if(!dia || !hora){ toast("Faltan datos","Indica día y hora.","warn","!"); return; }
-    t.agendaDia = dia; t.agendaHora = hora;
-    cambiarEstado(t, "agendado");
-    closeModal(back);
-    refrescarTecnico();
-    toast("Visita agendada", esc(fmtFechaCorta(dia))+" a las "+esc(hora), "ok", "📅");
-  });
-}
-
-/* --- modal CERRAR (notas + horas + confirmación) --- */
-function modalCerrar(t){
-  const back = openModal(`
-    <div class="modal">
-      <div class="modal-head"><div><h3>Cerrar ticket</h3><p>#${esc(t.id)} · ${esc(t.cliente)}</p></div><button class="modal-x" data-close>&times;</button></div>
-      <div class="modal-body">
-        <div class="field"><label for="clHoras">Horas empleadas</label><input type="number" id="clHoras" min="0" step="0.5" value="${t.horas||1}"></div>
-        <div class="field"><label for="clNotas">Notas de cierre</label><textarea id="clNotas" placeholder="Resumen del trabajo realizado...">${esc(t.notas)}</textarea></div>
-      </div>
-      <div class="modal-foot">
-        <button class="btn btn-ghost btn-sm" data-close>Cancelar</button>
-        <button class="btn btn-danger btn-sm" id="clConfirm">Confirmar cierre</button>
-      </div>
-    </div>
-  `);
-  back.querySelectorAll("[data-close]").forEach(b=>b.addEventListener("click",()=>closeModal(back)));
-  back.querySelector("#clConfirm").addEventListener("click", ()=>{
-    t.horas = Number(back.querySelector("#clHoras").value) || 0;
-    t.notas = back.querySelector("#clNotas").value;
-    cambiarEstado(t, "cerrado");
-    closeModal(back);
-    refrescarTecnico();
-    toast("Ticket cerrado", "Recibirás el link de reseña por WhatsApp 📲", "ok", "✅", 6000);
-    // GMB link disponible para la reseña (demo)
-    console.log("[reseña GMB]", GMB_URL);
-  });
-}
-
-function refrescarTecnico(){
-  renderTecnicoDashboard();
-  renderCalendario();
-  renderClientes();
-  if(fichaActualId && $("#view-ficha").classList.contains("active")){
-    const c = getCliente(fichaActualId); if(c) renderFicha(c);
+  let dia = hoy, hora = "09:00";
+  if(t.citaAt){
+    const d = new Date(t.citaAt);
+    if(!isNaN(d)){
+      dia = d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+      hora = String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0");
+    }
   }
-  if(sesion.rol==="gerente" && gerenciaUnlocked) renderGerencia();
+  const back = openModal(`
+    <div class="modal">
+      <div class="modal-head"><div><h3>${t.citaAt?"Reprogramar visita":"Agendar visita"}</h3><p>${esc(t.cliente)} · Aviso #${esc(avisoNum(t))}</p></div><button class="modal-x" data-close>&times;</button></div>
+      <div class="modal-body">
+        <div id="ciErr" class="login-err hidden"></div>
+        <div class="field"><label for="ciDia">Día</label><input type="date" id="ciDia" min="${hoy}" value="${dia}"></div>
+        <div class="field"><label for="ciHora">Hora</label><input type="time" id="ciHora" value="${hora}"></div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-ghost btn-sm" data-close>Cancelar</button>
+        <button class="btn btn-primary btn-sm" id="ciConfirm">${t.citaAt?"Reprogramar":"Confirmar visita"}</button>
+      </div>
+    </div>
+  `);
+  back.querySelectorAll("[data-close]").forEach(b=>b.addEventListener("click",()=>closeModal(back)));
+  back.querySelector("#ciConfirm").addEventListener("click", ()=>{
+    const d = back.querySelector("#ciDia").value, h = back.querySelector("#ciHora").value;
+    const err = back.querySelector("#ciErr");
+    if(!d || !h){ err.textContent = "Indica día y hora."; err.classList.remove("hidden"); return; }
+    const iso = new Date(d + "T" + h).toISOString();
+    guardarCita(t, iso, back);
+  });
+}
+
+// Guarda (o quita, con isoOrNull=null) la cita vía Edge Function y recarga.
+async function guardarCita(t, isoOrNull, back){
+  const btn = back ? back.querySelector("#ciConfirm") : null;
+  const err = back ? back.querySelector("#ciErr") : null;
+  if(btn){ btn.disabled = true; btn.textContent = "Guardando…"; }
+  try{
+    await ticketsApi({ action:"cita", ticket_id:t.id, cita_at:isoOrNull, usuario: usuarioLogin() });
+    if(back) closeModal(back);
+    if(isoOrNull) toast("Visita agendada", esc(fmtCita(isoOrNull)), "ok", "📅");
+    else toast("Cita eliminada", "Se quitó la visita del aviso #"+avisoNum(t)+".", "warn", "🗑");
+    cargarTicketsReales();
+  }catch(e){
+    if(err){ err.textContent = "No se pudo guardar la cita: " + e.message; err.classList.remove("hidden"); }
+    else toast("Error", "No se pudo quitar la cita: " + e.message, "warn", "!");
+    if(btn){ btn.disabled = false; btn.textContent = t.citaAt ? "Reprogramar" : "Confirmar visita"; }
+  }
 }
 
 /* ==========================================================
-   VISTA CALENDARIO
+   VISTA AGENDA (citas reales — tickets con cita_at)
    ========================================================== */
 function renderCalendario(){
-  const mine = misTickets().filter(t => t.estado === "agendado" && t.agendaDia);
-  mine.sort((a,b)=> new Date(a.agendaDia+"T"+(a.agendaHora||"00:00")) - new Date(b.agendaDia+"T"+(b.agendaHora||"00:00")));
   const cont = $("#calList");
-  if(mine.length===0){
+  if(!cont) return;
+  if(ticketsEstado === "loading" || ticketsEstado === "idle"){ cont.innerHTML = ticketPlaceholder("Cargando agenda…"); return; }
+  if(ticketsEstado === "error"){ cont.innerHTML = ticketPlaceholder("No se pudo cargar la agenda. " + ticketsErrorMsg, true); return; }
+
+  const citas = ticketsReal.filter(t => t.citaAt && agendable(t))
+    .sort((a,b)=> new Date(a.citaAt) - new Date(b.citaAt));
+  if(citas.length === 0){
     cont.innerHTML = `<div class="empty card">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
-      <div>No tienes visitas agendadas.</div></div>`;
+      <div>No hay visitas agendadas.</div></div>`;
     return;
   }
-  cont.innerHTML = mine.map(t=>{
-    const d = new Date(t.agendaDia);
+  cont.innerHTML = citas.map(t=>{
+    const d = new Date(t.citaAt);
     const dia = isNaN(d)?"--":d.getDate();
     const mes = isNaN(d)?"":d.toLocaleDateString("es-ES",{month:"short"});
-    return `<div class="card cal-item" data-ticket="${t.id}" style="cursor:pointer">
+    const hh  = isNaN(d)?"":d.toLocaleTimeString("es-ES",{hour:"2-digit",minute:"2-digit"});
+    return `<div class="card cal-item">
       <div class="cal-date"><div class="d">${dia}</div><div class="m">${esc(mes)}</div></div>
-      <div class="cal-time">${esc(t.agendaHora)}</div>
-      <div class="cal-info"><b>${esc(t.cliente)}</b><span>${esc(t.averia)} · Zona ${esc(t.zona)}</span></div>
-      ${badgeEstado(t.estado)}
+      <div class="cal-time">${esc(hh)}</div>
+      <div class="cal-info"><b>${esc(t.cliente)}</b><span>${esc(t.averia)} · Zona ${esc(t.zona)} · ${esc(t.tecnicoNombre)}</span></div>
+      <div class="cal-actions">
+        ${badgeEstado(t.estado)}
+        <button class="btn btn-sm" data-reprog="${esc(t.id)}">Reprogramar</button>
+      </div>
     </div>`;
   }).join("");
-  $$("[data-ticket]", cont).forEach(el=>el.addEventListener("click",()=>abrirTicket(el.dataset.ticket)));
+  $$("[data-reprog]", cont).forEach(el=>el.addEventListener("click",()=>{
+    const t = ticketsReal.find(x=>x.id===el.dataset.reprog); if(t) modalCita(t);
+  }));
 }
 
 /* ==========================================================
@@ -1460,52 +1298,55 @@ $$(".subtab").forEach(tab => tab.addEventListener("click", ()=>{
 }));
 
 function renderGerencia(){
-  cargarTicketsReales();   // Panel global (gerente) con datos reales · repinta también Mis tickets
+  cargarTicketsReales();   // Panel global + Rendimiento (datos reales) · repinta también Mis tickets
   renderTecGrid();         // Gestión técnicos (datos reales)
-  renderGraficas();        // Rendimiento (stats demo local)
-  renderAccesos();         // Log de accesos (demo local)
+  renderAccesos();         // Log de accesos (histórico demo)
 }
 
-/* --- 1. PANEL GLOBAL (datos reales de tickets) --- */
-// Opciones del filtro de técnico derivadas de los tickets reales cargados.
-function poblarFiltroTecnicosReal(){
-  const sel = $("#fTecnico"); if(!sel) return;
-  const val = sel.value;
-  const seen = new Map();
-  ticketsReal.forEach(t=>{ if(t.tecnicoId && !seen.has(t.tecnicoId)) seen.set(t.tecnicoId, t.tecnicoNombre); });
-  sel.innerHTML = '<option value="">Todos los técnicos</option>' +
-    Array.from(seen.entries()).map(([id,nom])=>`<option value="${esc(id)}">${esc(nom)}</option>`).join("") +
-    '<option value="__none">Sin asignar</option>';
-  sel.value = val;
-}
+/* --- 1. PANEL GLOBAL — avisos AGRUPADOS POR TÉCNICO --- */
+const ORDEN_ESTADOS = ["nuevo","asignado","en_curso","atendido","cerrado","cancelado"];
 
 function renderGlobalTable(){
-  const body = $("#globalTableBody");
-  if(ticketsEstado === "loading" || ticketsEstado === "idle"){ body.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:34px">Cargando avisos…</td></tr>'; return; }
-  if(ticketsEstado === "error"){ body.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#ff8f8f;padding:34px">Error al cargar los avisos. '+esc(ticketsErrorMsg)+'</td></tr>'; return; }
+  const cont = $("#globalGroups");
+  if(!cont) return;
+  if(ticketsEstado === "loading" || ticketsEstado === "idle"){ cont.innerHTML = '<div class="empty card"><div>Cargando avisos…</div></div>'; return; }
+  if(ticketsEstado === "error"){ cont.innerHTML = '<div class="empty card err"><div>Error al cargar los avisos. '+esc(ticketsErrorMsg)+'</div></div>'; return; }
 
-  const fT = $("#fTecnico").value, fE = $("#fEstadoG").value, fZ = $("#fZona").value;
+  const fE = $("#fEstadoG").value;
   let rows = ticketsReal.slice();
-  if(fT === "__none") rows = rows.filter(t=>!t.tecnicoId);
-  else if(fT) rows = rows.filter(t=>t.tecnicoId===fT);
   if(fE) rows = rows.filter(t=>t.estado===fE);
-  if(fZ) rows = rows.filter(t=>t.zona===fZ);
-  rows.sort((a,b)=> new Date(b.fechaCreacion)-new Date(a.fechaCreacion));
 
-  if(rows.length===0){ body.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:34px">Sin avisos para estos filtros.</td></tr>'; return; }
-  body.innerHTML = rows.map(t=>`
-    <tr data-ticket="${esc(t.id)}" style="cursor:pointer">
-      <td><b>${esc(t.cliente)}</b><br><span style="color:var(--muted);font-size:12px">#${esc(avisoNum(t))}</span></td>
-      <td style="max-width:220px">${esc(t.averia)}</td>
-      <td>${esc(t.zona)}</td>
-      <td>${esc(t.tecnicoNombre)}</td>
-      <td>${badgeEstado(t.estado)}</td>
-      <td style="white-space:nowrap">${esc(fmtFechaCorta(t.fechaCreacion))}</td>
-      <td class="num">${t.resenaEnviada?'<span style="color:var(--g)">✓</span>':'—'}</td>
-    </tr>`).join("");
-  $$("[data-ticket]", body).forEach(el=>el.addEventListener("click",()=>abrirTicketReal(el.dataset.ticket)));
+  // Agrupar por técnico (tecnicoId; null = "Sin asignar")
+  const grupos = new Map();
+  rows.forEach(t=>{
+    const key = t.tecnicoId || "__none";
+    if(!grupos.has(key)) grupos.set(key, { nombre: t.tecnicoId ? t.tecnicoNombre : "Sin asignar", tickets:[] });
+    grupos.get(key).tickets.push(t);
+  });
+
+  if(grupos.size === 0){ cont.innerHTML = '<div class="empty card"><div>Sin avisos para este filtro.</div></div>'; return; }
+
+  cont.innerHTML = Array.from(grupos.values()).map(g=>{
+    const cont2 = {};
+    g.tickets.forEach(t=>{ cont2[t.estado] = (cont2[t.estado]||0) + 1; });
+    const chips = ORDEN_ESTADOS.filter(e=>cont2[e]).map(e=>`<span class="est-chip">${badgeEstado(e)} ${cont2[e]}</span>`).join("");
+    const filas = g.tickets.slice().sort((a,b)=> new Date(b.fechaCreacion)-new Date(a.fechaCreacion)).map(t=>`
+      <div class="gt-row" data-ticket="${esc(t.id)}">
+        <div class="gt-main"><b>${esc(t.cliente)}</b> <span class="gt-av">${esc(t.averia)}</span></div>
+        <div class="gt-meta"><span>Zona ${esc(t.zona)}</span>${t.citaAt?'<span class="cita-chip">📅 '+esc(fmtCita(t.citaAt))+'</span>':''}${badgeEstado(t.estado)}</div>
+      </div>`).join("");
+    return `<div class="card tecgrp">
+      <div class="tecgrp-head">
+        <div class="tecgrp-id"><div class="avatar">${iniciales(g.nombre)}</div><div><b>${esc(g.nombre)}</b><span>${g.tickets.length} aviso${g.tickets.length===1?"":"s"}</span></div></div>
+        <div class="est-chips">${chips}</div>
+      </div>
+      <div class="tecgrp-list">${filas}</div>
+    </div>`;
+  }).join("");
+
+  $$("[data-ticket]", cont).forEach(el=>el.addEventListener("click",()=>abrirTicketReal(el.dataset.ticket)));
 }
-["#fTecnico","#fEstadoG","#fZona"].forEach(s=>$(s).addEventListener("change", renderGlobalTable));
+$("#fEstadoG").addEventListener("change", renderGlobalTable);
 
 /* --- 2. GESTIÓN TÉCNICOS (datos reales vía Edge Function) --- */
 const TECNICOS_FN = "https://mlaqtniujnvfxcvcourm.supabase.co/functions/v1/autoservice-tecnicos";
@@ -1692,94 +1533,84 @@ function modalNuevoTecnico(){
     usuarios.push(nuevo);
     closeModal(back);
     renderTecGrid();
-    poblarFiltroTecnicosReal();
-    renderGraficas();
     toast("Técnico dado de alta", nombre+" ya puede iniciar sesión.", "ok","✓");
   });
 }
 
-/* --- 3. GRÁFICAS RENDIMIENTO --- */
-function statsPorTecnico(rango){
-  // rango: 'mes' | 'semana' — filtra por fecha de cierre
-  const now = new Date();
-  const limite = new Date(now);
-  if(rango==="semana") limite.setDate(now.getDate()-7);
-  else limite.setMonth(now.getMonth()-1);
-
-  return usuarios.filter(u=>u.rol==="tecnico").map(u=>{
-    const cerr = tickets.filter(t=>t.tecnicoId===u.id && t.estado==="cerrado" && new Date(cierreFecha(t))>=limite);
-    const horas = cerr.reduce((a,t)=>a+(Number(t.horas)||0),0);
-    // media de tiempo de cierre en horas (creación -> cierre)
-    const medias = cerr.map(t=>{
-      const ini = new Date(t.fechaCreacion), fin = new Date(cierreFecha(t));
-      return (fin-ini)/36e5;
-    });
-    const mediaCierre = medias.length ? medias.reduce((a,b)=>a+b,0)/medias.length : 0;
-    return { id:u.id, nombre:u.nombre, cerrados:cerr.length, horas, mediaCierre };
-  });
+/* --- 3. RENDIMIENTO (KPIs reales sobre ticketsReal) --- */
+// Categoría = texto de tipo_averia antes de " · " (si no hay separador, el texto completo).
+function categoriaDe(averia){
+  const s = String(averia||"").trim();
+  if(!s) return "Otros";
+  const cat = s.split("·")[0].trim();
+  return cat || "Otros";
 }
 
 function renderGraficas(){
-  const rango = $("#fRango").value;
-  const stats = statsPorTecnico(rango);
-  const maxCerr = Math.max(1, ...stats.map(s=>s.cerrados));
+  const barsEl = $("#catBars"), kpisEl = $("#rendKpis"), bodyEl = $("#rendBody");
+  if(!barsEl || !kpisEl || !bodyEl) return;
+  if(ticketsEstado === "loading" || ticketsEstado === "idle"){ kpisEl.innerHTML = ""; barsEl.innerHTML = '<div style="color:var(--muted);font-size:13px">Cargando…</div>'; bodyEl.innerHTML = ""; return; }
+  if(ticketsEstado === "error"){ kpisEl.innerHTML = ""; barsEl.innerHTML = '<div style="color:#ff8f8f;font-size:13px">Error al cargar.</div>'; bodyEl.innerHTML = ""; return; }
 
-  // barras
-  $("#barsCerrados").innerHTML = stats.map(s=>`
+  const total = ticketsReal.length;
+  const hoy = new Date().toISOString().slice(0,10);
+  const now = new Date();
+  const finSemana = new Date(now); finSemana.setDate(now.getDate()+7);
+
+  // Citas hoy / semana (solo tickets agendables con cita)
+  const conCita = ticketsReal.filter(t => t.citaAt && agendable(t));
+  const citasHoy = conCita.filter(t => String(t.citaAt).slice(0,10) === hoy).length;
+  const citasSemana = conCita.filter(t => { const d = new Date(t.citaAt); return d >= now && d <= finSemana; }).length;
+  const cerradosTotal = ticketsReal.filter(t => t.estado === "cerrado").length;
+
+  kpisEl.innerHTML = `
+    ${kpi("Avisos totales", total, "p", '<path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/>')}
+    ${kpi("Cerrados", cerradosTotal, "g", '<path d="M20 6L9 17l-5-5"/>')}
+    ${kpi("Citas hoy", citasHoy, "gold", '<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>')}
+    ${kpi("Citas esta semana", citasSemana, "p", '<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>')}`;
+
+  // Distribución por categoría
+  const cats = {};
+  ticketsReal.forEach(t => { const c = categoriaDe(t.averia); cats[c] = (cats[c]||0)+1; });
+  const catArr = Object.entries(cats).sort((a,b)=> b[1]-a[1]);
+  const maxCat = Math.max(1, ...catArr.map(c=>c[1]));
+  barsEl.innerHTML = catArr.length ? catArr.map(([cat,n])=>`
     <div class="bar-row">
-      <div class="bl">${esc(s.nombre.split(" ")[0])}</div>
-      <div class="bar-track"><div class="bar-fill" style="width:${(s.cerrados/maxCerr*100)}%"></div></div>
-      <div class="bv">${s.cerrados}</div>
-    </div>`).join("") || '<div style="color:var(--muted);font-size:13px">Sin datos en el rango.</div>';
+      <div class="bl" title="${esc(cat)}">${esc(cat)}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${(n/maxCat*100).toFixed(0)}%"></div></div>
+      <div class="bv">${total?Math.round(n/total*100):0}%</div>
+    </div>`).join("") : '<div style="color:var(--muted);font-size:13px">Sin datos.</div>';
 
-  // línea (tiempo medio de cierre)
-  renderLineChart(stats);
-
-  // ranking
-  const ranked = stats.slice().sort((a,b)=> b.cerrados - a.cerrados || a.mediaCierre - b.mediaCierre);
-  $("#rankingBody").innerHTML = ranked.map((s,i)=>`
-    <tr>
-      <td class="num">${i+1}</td>
-      <td><b>${esc(s.nombre)}</b></td>
-      <td class="num">${s.cerrados}</td>
-      <td class="num">${s.horas%1===0?s.horas:s.horas.toFixed(1)} h</td>
-      <td class="num">${s.mediaCierre? s.mediaCierre.toFixed(1)+" h" : "—"}</td>
-    </tr>`).join("") || '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:30px">Sin datos.</td></tr>';
+  // Por técnico
+  const tecs = new Map();
+  ticketsReal.forEach(t=>{
+    const key = t.tecnicoId || "__none";
+    if(!tecs.has(key)) tecs.set(key, { nombre: t.tecnicoId ? t.tecnicoNombre : "Sin asignar", total:0, atendidos:0, cerrados:0, resenas:0, tiempos:[] });
+    const g = tecs.get(key);
+    g.total++;
+    if(t.estado === "atendido") g.atendidos++;
+    if(t.estado === "cerrado"){
+      g.cerrados++;
+      if(t.cerradoAt && t.fechaCreacion){ const h = (new Date(t.cerradoAt)-new Date(t.fechaCreacion))/36e5; if(h>=0) g.tiempos.push(h); }
+    }
+    if(t.resenaEnviada) g.resenas++;
+  });
+  const filas = Array.from(tecs.values()).sort((a,b)=> b.cerrados-a.cerrados || b.total-a.total);
+  bodyEl.innerHTML = filas.length ? filas.map(g=>{
+    const pct = g.total ? Math.round(g.cerrados/g.total*100) : 0;
+    const med = g.tiempos.length ? (g.tiempos.reduce((a,b)=>a+b,0)/g.tiempos.length) : 0;
+    const medTxt = med ? (med<24 ? med.toFixed(1)+" h" : (med/24).toFixed(1)+" d") : "—";
+    return `<tr>
+      <td><b>${esc(g.nombre)}</b></td>
+      <td class="num">${g.total}</td>
+      <td class="num">${g.atendidos}</td>
+      <td class="num">${g.cerrados}</td>
+      <td class="num">${pct}%</td>
+      <td class="num">${medTxt}</td>
+      <td class="num">${g.resenas}</td>
+    </tr>`;
+  }).join("") : '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:30px">Sin datos.</td></tr>';
 }
-
-function renderLineChart(stats){
-  const wrap = $("#lineChartWrap");
-  const data = stats.map(s=> ({ label:s.nombre.split(" ")[0], val:s.mediaCierre }));
-  const W=440, H=180, pad=34, topPad=30;
-  const maxV = Math.max(1, ...data.map(d=>d.val));
-  const n = data.length;
-  if(n===0){ wrap.innerHTML = '<div style="color:var(--muted);font-size:13px">Sin datos.</div>'; return; }
-  const stepX = n>1 ? (W-pad*2)/(n-1) : 0;
-  const x = i => pad + (n>1 ? i*stepX : (W-pad*2)/2);
-  // escala vertical: v=maxV -> topPad (arriba), v=0 -> H-pad (base). Cabe siempre dentro del SVG.
-  const y = v => (H-pad) - (v/maxV)*((H-pad)-topPad);
-
-  const pts = data.map((d,i)=>[x(i),y(d.val)]);
-  const path = pts.map((p,i)=> (i===0?"M":"L")+p[0].toFixed(1)+" "+p[1].toFixed(1)).join(" ");
-  const area = path + ` L ${x(n-1)} ${H-pad} L ${x(0)} ${H-pad} Z`;
-
-  // gridlines
-  let grid = "";
-  for(let g=0; g<=3; g++){ const gy = topPad + g*((H-pad-topPad)/3); grid += `<line x1="${pad}" y1="${gy}" x2="${W-pad}" y2="${gy}" stroke="rgba(255,255,255,.06)"/>`; }
-
-  wrap.innerHTML = `<svg class="line-chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet">
-    <defs><linearGradient id="lg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="rgba(124,77,255,.35)"/><stop offset="100%" stop-color="rgba(124,77,255,0)"/>
-    </linearGradient></defs>
-    ${grid}
-    <path d="${area}" fill="url(#lg)"/>
-    <path d="${path}" fill="none" stroke="#9d70ff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-    ${pts.map((p,i)=>`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="4.5" fill="#08080d" stroke="#9d70ff" stroke-width="2.5"/>
-      <text x="${p[0].toFixed(1)}" y="${(p[1]-12).toFixed(1)}" text-anchor="middle" fill="#f0f0f5" font-size="11" font-weight="600">${data[i].val?data[i].val.toFixed(1):"0"}</text>`).join("")}
-    ${data.map((d,i)=>`<text x="${x(i).toFixed(1)}" y="${H-pad+18}" text-anchor="middle">${esc(d.label)}</text>`).join("")}
-  </svg>`;
-}
-$("#fRango").addEventListener("change", renderGraficas);
 
 /* --- 4. LOG DE ACCESOS --- */
 function renderAccesos(){
@@ -1793,87 +1624,58 @@ function renderAccesos(){
 }
 
 /* ==========================================================
-   CLIENTES — lista, ficha, alta/edición/baja y ticket
+   CLIENTES — derivados de los avisos reales (agrupados por teléfono)
    ========================================================== */
-let fichaActualId = null;
-
-function wireClienteLinks(root){
-  $$("[data-ficha]", root).forEach(el => el.addEventListener("click", e => {
-    e.stopPropagation();
-    abrirFichaCliente(el.dataset.ficha);
-  }));
-}
+let fichaActualTel = null;
 
 /* --- lista de clientes --- */
 function renderClientes(){
-  const acc = $("#clientesActions");
-  if(sesion.rol === "gerente"){
-    acc.innerHTML = `
-      <button class="btn btn-sm" id="btnNuevoDom"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Nuevo cliente doméstico</button>
-      <button class="btn btn-primary btn-sm" id="btnNuevaEmp"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Nueva empresa</button>`;
-    $("#btnNuevoDom").addEventListener("click", () => modalCliente("domestico"));
-    $("#btnNuevaEmp").addEventListener("click", () => modalCliente("empresa"));
-  } else {
-    acc.innerHTML = "";
-  }
   $("#clientesSub").textContent = sesion.rol === "gerente"
-    ? "Cartera completa de clientes domésticos y empresas"
-    : "Clientes vinculados a tus tickets";
+    ? "Clientes derivados de todos los avisos"
+    : "Clientes de tus avisos asignados";
   renderClientesTable();
 }
 
 function renderClientesTable(){
-  const tipo = $("#fTipoCliente").value;
+  const body = $("#clientesTableBody");
+  if(!body) return;
+  if(ticketsEstado === "loading" || ticketsEstado === "idle"){ body.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:34px">Cargando clientes…</td></tr>'; return; }
+  if(ticketsEstado === "error"){ body.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#ff8f8f;padding:34px">Error al cargar. '+esc(ticketsErrorMsg)+'</td></tr>'; return; }
+
   const q = ($("#buscarCliente").value || "").trim().toLowerCase();
-  let list = clientesVisibles();
-  if(tipo) list = list.filter(c => c.tipo === tipo);
+  const qd = q.replace(/\s/g,"");
+  let list = clientesReales();
   if(q){
-    const qd = q.replace(/\s/g,"");
     list = list.filter(c =>
-      nombreCliente(c).toLowerCase().includes(q) ||
-      (c.doc||"").toLowerCase().includes(q) ||
-      (c.telefono||"").replace(/\s/g,"").includes(qd) ||
-      (c.contacto||"").toLowerCase().includes(q)
+      String(c.nombre||"").toLowerCase().includes(q) ||
+      String(c.telefono||"").replace(/\s/g,"").includes(qd)
     );
   }
-  list.sort((a,b) => nombreCliente(a).localeCompare(nombreCliente(b), "es"));
+  list.sort((a,b) => String(a.nombre||"").localeCompare(String(b.nombre||""), "es"));
 
-  const body = $("#clientesTableBody");
   if(list.length === 0){
-    body.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:34px">Sin clientes' + (q||tipo ? " para estos filtros" : "") + '.</td></tr>';
+    body.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:34px">Sin clientes' + (q ? " para esta búsqueda" : " todavía") + '.</td></tr>';
     return;
   }
   body.innerHTML = list.map(c => {
-    const tks = ticketsDeCliente(c.id);
-    const ultimo = tks.slice().sort((a,b) => new Date(b.fechaCreacion) - new Date(a.fechaCreacion))[0];
-    const tipoBadge = c.tipo === "empresa"
-      ? '<span class="badge badge-empresa">Empresa</span>'
-      : '<span class="badge badge-domestico">Doméstico</span>';
-    return `<tr>
-      <td>${tipoBadge}</td>
-      <td><b class="cliente-link" data-ficha="${c.id}">${esc(nombreCliente(c))}</b>${c.tipo==="empresa"&&c.contacto?'<br><span style="color:var(--muted);font-size:12px">'+esc(c.contacto)+'</span>':''}</td>
-      <td style="white-space:nowrap">${esc(c.doc||"—")}</td>
+    const ultimo = c.tickets.slice().sort((a,b) => new Date(b.fechaCreacion) - new Date(a.fechaCreacion))[0];
+    return `<tr class="cli-row" data-tel="${esc(c.key)}" style="cursor:pointer">
+      <td><b>${esc(c.nombre||"—")}</b></td>
       <td style="white-space:nowrap">${esc(c.telefono||"—")}</td>
       <td>${esc(c.zona||"—")}</td>
-      <td class="num">${tks.length}</td>
+      <td class="num">${c.tickets.length}</td>
       <td style="white-space:nowrap">${ultimo?esc(fmtFechaCorta(ultimo.fechaCreacion)):"—"}</td>
-      <td><button class="btn btn-sm" data-ficha="${c.id}">Ver ficha</button></td>
+      <td><button class="btn btn-sm" data-tel="${esc(c.key)}">Ver ficha</button></td>
     </tr>`;
   }).join("");
-  wireClienteLinks(body);
+  $$("[data-tel]", body).forEach(el => el.addEventListener("click", e => { e.stopPropagation(); abrirFichaCliente(el.dataset.tel); }));
 }
-$("#fTipoCliente").addEventListener("change", renderClientesTable);
 $("#buscarCliente").addEventListener("input", renderClientesTable);
 
-/* --- ficha de cliente --- */
-function abrirFichaCliente(id){
-  const c = getCliente(id);
-  if(!c) return;
-  if(!puedeVerCliente(id)){
-    toast("Sin acceso", "No tienes permiso para ver esta ficha.", "warn", "!");
-    return;
-  }
-  renderFicha(c);
+/* --- ficha de cliente (teléfono) --- */
+function abrirFichaCliente(tel){
+  fichaActualTel = telKey(tel);
+  renderFicha(fichaActualTel);
   $$(".view").forEach(v => v.classList.remove("active"));
   $("#view-ficha").classList.add("active");
   $$(".navitem").forEach(n => n.classList.toggle("active", n.dataset.view === "clientes"));
@@ -1882,253 +1684,66 @@ function abrirFichaCliente(id){
   closeMobileNav();
 }
 
-function renderFicha(c){
-  fichaActualId = c.id;
-  const tks = ticketsDeCliente(c.id).slice().sort((a,b) => new Date(b.fechaCreacion) - new Date(a.fechaCreacion));
+function renderFicha(tel){
+  const key = telKey(tel);
+  const c = clientesReales().find(x => x.key === key);
+  const view = $("#view-ficha");
+  if(!c){
+    view.innerHTML = `<div class="view-head" style="margin-bottom:16px">
+        <button class="btn btn-ghost btn-sm" id="btnVolverClientes"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg> Volver a clientes</button>
+      </div>
+      <div class="empty card"><div>Este cliente ya no tiene avisos.</div></div>`;
+    $("#btnVolverClientes").addEventListener("click", () => switchView("clientes"));
+    return;
+  }
+  const tks = c.tickets.slice().sort((a,b) => new Date(b.fechaCreacion) - new Date(a.fechaCreacion));
   const total = tks.length;
   const cerrados = tks.filter(t => t.estado === "cerrado").length;
-  const enCurso = tks.filter(t => t.estado !== "cerrado").length;
+  const enCurso = tks.filter(t => agendable(t)).length;
   const ultimo = tks[0];
-  const esEmpresa = c.tipo === "empresa";
-  const puedeGestionar = sesion.rol === "gerente";
-  const nombre = nombreCliente(c);
-  const tipoBadge = esEmpresa
-    ? '<span class="badge badge-empresa">Empresa</span>'
-    : '<span class="badge badge-domestico">Doméstico</span>';
+  const nombre = c.nombre || "—";
 
-  const direccionCompleta = [c.direccion, (c.cp && c.localidad) ? (c.cp + " " + c.localidad) : (c.localidad || c.cp || "")]
-    .filter(Boolean).join(" · ") || "—";
-
-  const histHtml = tks.length ? tks.map(t => {
-    const cierre = t.estado === "cerrado" ? cierreFecha(t) : "";
-    return `<div class="hist-tk-item">
+  const histHtml = tks.map(t => `<div class="hist-tk-item">
       <div class="hk-top"><b>${esc(t.averia)}</b>${badgeEstado(t.estado)}</div>
       <div class="hk-meta">
-        <span>#${esc(t.id)}</span>
-        <span>${esc(nombreTecnico(t.tecnicoId))}</span>
+        <span>#${esc(avisoNum(t))}</span>
+        <span>${esc(t.tecnicoNombre)}</span>
+        <span>Zona ${esc(t.zona)}</span>
         <span>Creado ${esc(fmtFechaCorta(t.fechaCreacion))}</span>
-        ${cierre?'<span>Cerrado '+esc(fmtFechaCorta(cierre))+'</span>':''}
-        ${t.horas>0?'<span>'+t.horas+' h</span>':''}
+        ${t.cerradoAt?'<span>Cerrado '+esc(fmtFechaCorta(t.cerradoAt))+'</span>':''}
+        ${t.citaAt?'<span class="cita-chip">📅 '+esc(fmtCita(t.citaAt))+'</span>':''}
       </div>
-      ${t.notas?'<div class="hk-notas">“'+esc(t.notas)+'”</div>':''}
-      <button class="btn btn-sm" data-tkdet="${t.id}" style="margin-top:10px">Ver detalle</button>
-    </div>`;
-  }).join("") : '<div class="empty card"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 12h8M8 16h5M8 8h8"/></svg><div>Sin tickets registrados para este cliente.</div></div>';
+      <button class="btn btn-sm" data-tkdet="${esc(t.id)}" style="margin-top:10px">Ver detalle</button>
+    </div>`).join("");
 
-  $("#view-ficha").innerHTML = `
+  view.innerHTML = `
     <div class="view-head" style="margin-bottom:16px">
       <button class="btn btn-ghost btn-sm" id="btnVolverClientes"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg> Volver a clientes</button>
-      ${puedeGestionar?`<div class="head-actions">
-        <button class="btn btn-sm" id="btnEditarCliente">Editar datos</button>
-        <button class="btn btn-sm btn-danger" id="btnBorrarCliente">Eliminar</button>
-      </div>`:''}
     </div>
     <div class="card ficha-head">
-      <div class="ficha-avatar ${esEmpresa?'emp':''}">${esc(iniciales(nombre))}</div>
+      <div class="ficha-avatar">${esc(iniciales(nombre))}</div>
       <div class="ficha-id">
-        <div class="fh-top">${tipoBadge}<h2>${esc(nombre)}</h2></div>
+        <div class="fh-top"><h2>${esc(nombre)}</h2></div>
         <div class="fh-sub">
-          <span>${esEmpresa?'CIF':'DNI'} ${esc(c.doc||"—")}</span>
           <span>${esc(c.telefono||"—")}</span>
           <span>Zona ${esc(c.zona||"—")}</span>
-          ${c.email?'<span>'+esc(c.email)+'</span>':''}
         </div>
       </div>
     </div>
     <div class="kpis">
-      ${kpi("Total tickets", total, "p", '<path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/>')}
+      ${kpi("Total avisos", total, "p", '<path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/>')}
       ${kpi("Cerrados", cerrados, "g", '<path d="M20 6L9 17l-5-5"/>')}
-      ${kpi("En curso", enCurso, "gold", '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>')}
-      ${kpi("Último servicio", ultimo?fmtFechaMini(ultimo.fechaCreacion):"—", "p", '<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>')}
-    </div>
-    <div class="card datos-card">
-      <h4>Datos completos</h4>
-      <div class="pf-grid">
-        <div class="pf-item" style="grid-column:1/-1"><div class="l">Dirección${esEmpresa?' fiscal':''}</div><div class="v">${esc(direccionCompleta)}</div></div>
-        ${esEmpresa?`
-          <div class="pf-item"><div class="l">Persona de contacto</div><div class="v">${esc(c.contacto||"—")}</div></div>
-          <div class="pf-item"><div class="l">Cargo</div><div class="v">${esc(c.cargoContacto||"—")}</div></div>
-          ${c.telContacto?`<div class="pf-item"><div class="l">Teléfono contacto</div><div class="v">${esc(c.telContacto)}</div></div>`:''}
-        `:''}
-      </div>
-      <div class="field" style="margin-top:18px;margin-bottom:0">
-        <label for="fichaNotas">Notas generales</label>
-        <textarea id="fichaNotas" placeholder="Anota observaciones sobre este cliente...">${esc(c.notas||"")}</textarea>
-        <button class="btn btn-sm" id="btnGuardarNotasCliente" style="margin-top:10px">Guardar notas</button>
-      </div>
+      ${kpi("Abiertos", enCurso, "gold", '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>')}
+      ${kpi("Último aviso", ultimo?fmtFechaMini(ultimo.fechaCreacion):"—", "p", '<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>')}
     </div>
     <div class="view-head" style="margin-bottom:14px">
-      <h3 class="section-title" style="margin:0">Historial de tickets</h3>
-      <button class="btn btn-primary btn-sm" id="btnNuevoTicketCliente"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Nuevo ticket para este cliente</button>
+      <h3 class="section-title" style="margin:0">Historial de avisos</h3>
     </div>
     <div class="hist-tk">${histHtml}</div>
   `;
 
   $("#btnVolverClientes").addEventListener("click", () => switchView("clientes"));
-  $("#btnGuardarNotasCliente").addEventListener("click", () => {
-    c.notas = $("#fichaNotas").value;
-    toast("Notas guardadas", "Ficha de " + nombre + " actualizada.", "ok", "✓");
-  });
-  $("#btnNuevoTicketCliente").addEventListener("click", () => modalNuevoTicket(c));
-  $$("[data-tkdet]", $("#view-ficha")).forEach(el => el.addEventListener("click", () => abrirTicket(el.dataset.tkdet)));
-  if(puedeGestionar){
-    $("#btnEditarCliente").addEventListener("click", () => modalCliente(c.tipo, c));
-    $("#btnBorrarCliente").addEventListener("click", () => confirmarBorrarCliente(c));
-  }
-}
-
-/* --- alta / edición de cliente (solo gerente) --- */
-function modalCliente(tipo, existing){
-  const editando = !!existing;
-  const c = existing || {};
-  const esEmp = tipo === "empresa";
-  const titulo = editando ? (esEmp?"Editar empresa":"Editar cliente") : (esEmp?"Nueva empresa":"Nuevo cliente doméstico");
-  const zonaOpts = ZONAS.map(z => `<option ${c.zona===z?"selected":""}>${z}</option>`).join("");
-
-  const camposDom = `
-    <div class="field" style="margin:0"><label>Nombre completo *</label><input id="clNombre" value="${esc(c.nombre||"")}"></div>
-    <div class="field" style="margin:0"><label>Apellidos *</label><input id="clApellidos" value="${esc(c.apellidos||"")}"></div>
-    <div class="field" style="margin:0"><label>DNI *</label><input id="clDoc" value="${esc(c.doc||"")}"></div>
-    <div class="field" style="margin:0"><label>Teléfono *</label><input id="clTel" value="${esc(c.telefono||"")}"></div>
-    <div class="field" style="margin:0"><label>Email</label><input id="clEmail" value="${esc(c.email||"")}"></div>
-    <div class="field" style="margin:0"><label>Zona *</label><select id="clZona"><option value="">—</option>${zonaOpts}</select></div>
-    <div class="field" style="margin:0"><label>Dirección (calle + nº + piso)</label><input id="clDir" value="${esc(c.direccion||"")}"></div>
-    <div class="field" style="margin:0"><label>Localidad</label><input id="clLoc" value="${esc(c.localidad||"")}"></div>
-    <div class="field" style="margin:0"><label>Código postal</label><input id="clCp" value="${esc(c.cp||"")}"></div>`;
-
-  const camposEmp = `
-    <div class="field" style="margin:0"><label>Razón social *</label><input id="clRazon" value="${esc(c.razonSocial||"")}"></div>
-    <div class="field" style="margin:0"><label>CIF *</label><input id="clDoc" value="${esc(c.doc||"")}"></div>
-    <div class="field" style="margin:0"><label>Teléfono *</label><input id="clTel" value="${esc(c.telefono||"")}"></div>
-    <div class="field" style="margin:0"><label>Email</label><input id="clEmail" value="${esc(c.email||"")}"></div>
-    <div class="field" style="margin:0"><label>Dirección fiscal (calle + nº)</label><input id="clDir" value="${esc(c.direccion||"")}"></div>
-    <div class="field" style="margin:0"><label>Localidad</label><input id="clLoc" value="${esc(c.localidad||"")}"></div>
-    <div class="field" style="margin:0"><label>Código postal</label><input id="clCp" value="${esc(c.cp||"")}"></div>
-    <div class="field" style="margin:0"><label>Persona de contacto *</label><input id="clContacto" value="${esc(c.contacto||"")}"></div>
-    <div class="field" style="margin:0"><label>Cargo de contacto</label><input id="clCargo" value="${esc(c.cargoContacto||"")}"></div>
-    <div class="field" style="margin:0"><label>Teléfono contacto</label><input id="clTelC" value="${esc(c.telContacto||"")}"></div>
-    <div class="field" style="margin:0"><label>Zona *</label><select id="clZona"><option value="">—</option>${zonaOpts}</select></div>`;
-
-  const back = openModal(`
-    <div class="modal wide">
-      <div class="modal-head"><div><h3>${titulo}</h3><p>${esEmp?"Datos fiscales y de contacto":"Datos del cliente particular"}</p></div><button class="modal-x" data-close>&times;</button></div>
-      <div class="modal-body">
-        <div id="clErr" class="login-err hidden"></div>
-        <div class="detail-grid" style="margin-bottom:14px">${esEmp?camposEmp:camposDom}</div>
-        <div class="field" style="margin:0"><label>Notas generales</label><textarea id="clNotas" placeholder="Observaciones...">${esc(c.notas||"")}</textarea></div>
-      </div>
-      <div class="modal-foot"><button class="btn btn-ghost btn-sm" data-close>Cancelar</button><button class="btn btn-primary btn-sm" id="clConfirm">${editando?"Guardar cambios":"Crear"}</button></div>
-    </div>`);
-  back.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", () => closeModal(back)));
-
-  back.querySelector("#clConfirm").addEventListener("click", () => {
-    const err = back.querySelector("#clErr");
-    const g = id => { const el = back.querySelector(id); return el ? el.value.trim() : ""; };
-    const doc = g("#clDoc"), tel = g("#clTel"), zona = back.querySelector("#clZona").value;
-    let datos;
-    if(esEmp){
-      const razon = g("#clRazon"), contacto = g("#clContacto");
-      if(!razon || !doc || !tel || !contacto || !zona){
-        err.textContent = "Razón social, CIF, teléfono, persona de contacto y zona son obligatorios.";
-        err.classList.remove("hidden"); return;
-      }
-      datos = { tipo:"empresa", razonSocial:razon, doc, telefono:tel, email:g("#clEmail"),
-        direccion:g("#clDir"), localidad:g("#clLoc"), cp:g("#clCp"),
-        contacto, cargoContacto:g("#clCargo"), telContacto:g("#clTelC"), zona, notas:g("#clNotas") };
-    } else {
-      const nombre = g("#clNombre"), apellidos = g("#clApellidos");
-      if(!nombre || !apellidos || !doc || !tel || !zona){
-        err.textContent = "Nombre, apellidos, DNI, teléfono y zona son obligatorios.";
-        err.classList.remove("hidden"); return;
-      }
-      datos = { tipo:"domestico", nombre, apellidos, doc, telefono:tel, email:g("#clEmail"),
-        direccion:g("#clDir"), localidad:g("#clLoc"), cp:g("#clCp"), zona, notas:g("#clNotas") };
-    }
-
-    if(editando){
-      Object.assign(existing, datos);
-      // reflejar nombre/teléfono en tickets vinculados
-      ticketsDeCliente(existing.id).forEach(t => { t.cliente = nombreCliente(existing); t.telefono = existing.telefono; });
-      closeModal(back);
-      renderFicha(existing);
-      refrescarTecnico();
-      toast(esEmp?"Empresa actualizada":"Cliente actualizado", nombreCliente(existing) + " guardado.", "ok", "✓");
-    } else {
-      datos.id = nextClienteId();
-      clientes.push(datos);
-      closeModal(back);
-      renderClientes();
-      toast(esEmp?"Empresa creada ✓":"Cliente creado ✓", nombreCliente(datos) + " añadido a la cartera.", "ok", "✓");
-    }
-  });
-}
-
-function confirmarBorrarCliente(c){
-  const tks = ticketsDeCliente(c.id);
-  const back = openModal(`
-    <div class="modal">
-      <div class="modal-head"><div><h3>Eliminar cliente</h3><p>Esta acción no se puede deshacer</p></div><button class="modal-x" data-close>&times;</button></div>
-      <div class="modal-body">
-        <p style="font-size:14px;color:var(--muted);line-height:1.6">¿Seguro que quieres eliminar a <b style="color:var(--text)">${esc(nombreCliente(c))}</b>?${tks.length?' Sus <b style="color:var(--text)">'+tks.length+' ticket(s)</b> quedarán sin cliente vinculado.':''}</p>
-      </div>
-      <div class="modal-foot"><button class="btn btn-ghost btn-sm" data-close>Cancelar</button><button class="btn btn-danger btn-sm" id="delConfirm">Eliminar cliente</button></div>
-    </div>`);
-  back.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", () => closeModal(back)));
-  back.querySelector("#delConfirm").addEventListener("click", () => {
-    tks.forEach(t => { t.clienteId = null; });
-    clientes = clientes.filter(x => x.id !== c.id);
-    fichaActualId = null;
-    closeModal(back);
-    switchView("clientes");
-    toast("Cliente eliminado", nombreCliente(c) + " se ha eliminado de la cartera.", "warn", "🗑");
-  });
-}
-
-/* --- nuevo ticket desde ficha de cliente --- */
-function modalNuevoTicket(c){
-  const esGerente = sesion.rol === "gerente";
-  const tecOpts = usuarios.filter(u => u.rol === "tecnico" && u.activo)
-    .map(u => `<option value="${u.id}">${esc(u.nombre)}</option>`).join("");
-  const back = openModal(`
-    <div class="modal wide">
-      <div class="modal-head"><div><h3>Nuevo ticket</h3><p>Cliente: ${esc(nombreCliente(c))}</p></div><button class="modal-x" data-close>&times;</button></div>
-      <div class="modal-body">
-        <div id="ntkErr" class="login-err hidden"></div>
-        <div class="detail-grid" style="margin-bottom:14px">
-          <div class="field" style="margin:0"><label>Cliente</label><input type="text" value="${esc(nombreCliente(c))}" disabled></div>
-          <div class="field" style="margin:0"><label>Teléfono</label><input id="ntkTel" type="text" value="${esc(c.telefono||"")}"></div>
-          <div class="field" style="margin:0"><label>Zona *</label><select id="ntkZona">${ZONAS.map(z=>`<option ${z===c.zona?"selected":""}>${z}</option>`).join("")}</select></div>
-          <div class="field" style="margin:0"><label>Urgencia</label><select id="ntkUrg"><option value="alta">Alta</option><option value="media" selected>Media</option><option value="baja">Baja</option></select></div>
-          ${esGerente?`<div class="field" style="margin:0;grid-column:1/-1"><label>Técnico asignado</label><select id="ntkTec"><option value="">Sin asignar</option>${tecOpts}</select></div>`:''}
-        </div>
-        <div class="field" style="margin:0"><label>Avería *</label><textarea id="ntkAveria" placeholder="Describe la avería o servicio solicitado..."></textarea></div>
-      </div>
-      <div class="modal-foot"><button class="btn btn-ghost btn-sm" data-close>Cancelar</button><button class="btn btn-primary btn-sm" id="ntkConfirm">Crear ticket</button></div>
-    </div>`);
-  back.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", () => closeModal(back)));
-  back.querySelector("#ntkConfirm").addEventListener("click", () => {
-    const averia = back.querySelector("#ntkAveria").value.trim();
-    const err = back.querySelector("#ntkErr");
-    if(!averia){ err.textContent = "La descripción de la avería es obligatoria."; err.classList.remove("hidden"); return; }
-    const zona = back.querySelector("#ntkZona").value;
-    const urgencia = back.querySelector("#ntkUrg").value;
-    const tel = back.querySelector("#ntkTel").value.trim();
-    const tecnicoId = esGerente ? (back.querySelector("#ntkTec").value || null) : sesion.id;
-    const now = new Date().toISOString();
-    const estado = tecnicoId ? "asignado" : "nuevo";
-    const historial = [{estado:"nuevo", fecha:now}];
-    if(tecnicoId) historial.push({estado:"asignado", fecha:now});
-    const tk = {
-      id: nextTicketId(), clienteId:c.id, cliente:nombreCliente(c), telefono:tel||c.telefono,
-      averia, zona, urgencia, tecnicoId, estado, notas:"", horas:0,
-      fechaCreacion:now, agendaDia:"", agendaHora:"", historial
-    };
-    tickets.push(tk);
-    closeModal(back);
-    fichaActualId = c.id;
-    refrescarTecnico();
-    toast("Ticket creado", "#" + tk.id + " para " + nombreCliente(c), "ok", "✓");
-  });
+  $$("[data-tkdet]", view).forEach(el => el.addEventListener("click", () => abrirTicketReal(el.dataset.tkdet)));
 }
 
 /* ==========================================================
