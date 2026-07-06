@@ -44,6 +44,8 @@ input,select,textarea{font-family:inherit}
 .badge-nuevo{background:rgba(124,77,255,.15);color:var(--p2);border:1px solid rgba(124,77,255,.3)}
 .badge-asignado{background:rgba(157,112,255,.12);color:#c3aaff;border:1px solid rgba(157,112,255,.25)}
 .badge-atendido{background:rgba(0,212,170,.13);color:var(--g);border:1px solid rgba(0,212,170,.28)}
+.badge-en_curso{background:rgba(80,160,255,.13);color:#6fb4ff;border:1px solid rgba(80,160,255,.3)}
+.badge-cancelado{background:rgba(255,107,107,.13);color:#ff8f8f;border:1px solid rgba(255,107,107,.3)}
 .badge-fuera_de_hora{background:rgba(245,200,66,.13);color:var(--gold);border:1px solid rgba(245,200,66,.3)}
 .badge-agendado{background:rgba(80,160,255,.13);color:#6fb4ff;border:1px solid rgba(80,160,255,.3)}
 .badge-cerrado{background:rgba(136,136,160,.13);color:var(--muted);border:1px solid var(--line2)}
@@ -475,10 +477,10 @@ td.num{font-variant-numeric:tabular-nums;font-weight:600}
           <option value="">Todos los estados</option>
           <option value="nuevo">Nuevo</option>
           <option value="asignado">Asignado</option>
+          <option value="en_curso">En curso</option>
           <option value="atendido">Atendido</option>
-          <option value="fuera_de_hora">Fuera de hora</option>
-          <option value="agendado">Agendado</option>
           <option value="cerrado">Cerrado</option>
+          <option value="cancelado">Cancelado</option>
         </select>
       </div>
       <div class="ticket-list" id="techTicketList"></div>
@@ -545,10 +547,10 @@ td.num{font-variant-numeric:tabular-nums;font-weight:600}
             <option value="">Todos los estados</option>
             <option value="nuevo">Nuevo</option>
             <option value="asignado">Asignado</option>
+            <option value="en_curso">En curso</option>
             <option value="atendido">Atendido</option>
-            <option value="fuera_de_hora">Fuera de hora</option>
-            <option value="agendado">Agendado</option>
             <option value="cerrado">Cerrado</option>
+            <option value="cancelado">Cancelado</option>
           </select>
           <select id="fZona">
             <option value="">Todas las zonas</option>
@@ -557,7 +559,7 @@ td.num{font-variant-numeric:tabular-nums;font-weight:600}
         </div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Cliente</th><th>Avería</th><th>Zona</th><th>Técnico</th><th>Estado</th><th>Fecha</th><th>Horas</th></tr></thead>
+            <thead><tr><th>Cliente</th><th>Avería</th><th>Zona</th><th>Técnico</th><th>Estado</th><th>Fecha</th><th>Reseña</th></tr></thead>
             <tbody id="globalTableBody"></tbody>
           </table>
         </div>
@@ -644,7 +646,11 @@ let usuarios = [
     wa_number:"34600111222", apikey:"", ultimoAcceso:"2026-07-05T07:30:00" }
 ];
 
-// 9 tickets demo — vinculados a clientes por clienteId
+// 9 tickets demo — vinculados a clientes por clienteId.
+// NOTA: desde feat/tickets-reales, las vistas "Mis tickets" y "Panel global"
+// (gerencia) usan datos REALES de Supabase (ver ticketsReal / autoservice-tickets).
+// Este array demo se mantiene SOLO para las vistas Clientes (fichas/historial) y
+// Calendario, que siguen operando sobre la cartera local de demostración.
 let tickets = [
   // --- María García (c1) → los 3 tickets de Carlos (Norte/Oeste) ---
   { id:"AV-1042", clienteId:"c1", cliente:"María García", telefono:"612 345 678", averia:"Cambio de aceite y filtro urgente",
@@ -737,8 +743,8 @@ let sesion = null;         // { id, nombre, rol, zonas }
 let gerenciaUnlocked = false;
 
 const ESTADO_LABEL = {
-  nuevo:"Nuevo", asignado:"Asignado", atendido:"Atendido",
-  fuera_de_hora:"Fuera de hora", agendado:"Agendado", cerrado:"Cerrado"
+  nuevo:"Nuevo", asignado:"Asignado", en_curso:"En curso", atendido:"Atendido",
+  fuera_de_hora:"Fuera de hora", agendado:"Agendado", cerrado:"Cerrado", cancelado:"Cancelado"
 };
 
 /* ==========================================================
@@ -879,7 +885,7 @@ function entrarApp(){
 
   // Vista por defecto
   switchView("tickets");
-  renderTecnicoDashboard();
+  cargarTicketsReales();   // "Mis tickets" con datos reales de Supabase
   renderCalendario();
   renderPerfil();
   renderClientes();
@@ -917,6 +923,7 @@ function switchView(view){
   const titles = { tickets:"Mis tickets", clientes:"Clientes", calendario:"Calendario", perfil:"Mi perfil", gerencia:"Gerencia" };
   $("#pageTitle").textContent = titles[view] || "";
 
+  if(view === "tickets") cargarTicketsReales();
   if(view === "gerencia") renderGerencia();
   if(view === "clientes") renderClientes();
   closeMobileNav();
@@ -936,30 +943,105 @@ $("#navBackdrop").addEventListener("click", closeMobileNav);
    VISTA TÉCNICO — DASHBOARD
    ========================================================== */
 function misTickets(){
-  // gerente ve también los suyos como técnico (asignados a su id); si no tiene, mostrará vacío
+  // SOLO para el Calendario demo (local). Las vistas "Mis tickets" y "Panel global"
+  // usan datos reales (ticketsReal). Ver bloque TICKETS REALES más abajo.
   return tickets.filter(t => t.tecnicoId === sesion.id);
 }
 
+/* ==========================================================
+   TICKETS REALES  (Supabase · Edge Function autoservice-tickets)
+   Alimenta "Mis tickets" (técnico) y el "Panel global" (gerente).
+   ========================================================== */
+const TICKETS_FN = "https://mlaqtniujnvfxcvcourm.supabase.co/functions/v1/autoservice-tickets";
+let ticketsReal = [];
+let ticketsEstado = "idle";   // idle | loading | ok | error
+let ticketsErrorMsg = "";
+
+function usuarioLogin(){ const u = getUser(sesion.id); return u ? u.usuario : ""; }
+function avisoNum(t){ return String(t.id || "").slice(0, 8); }
+
+async function ticketsApi(payload){
+  const res = await fetch(TICKETS_FN, {
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body: JSON.stringify(payload)
+  });
+  const data = await res.json().catch(()=>null);
+  if(!res.ok || !data || data.ok === false){
+    throw new Error((data && data.error) || ("HTTP " + res.status));
+  }
+  return data;
+}
+
+function mapTicketReal(r){
+  const hist = [{ estado:"nuevo", fecha:r.created_at }];
+  if(r.estado && r.estado !== "nuevo" && r.estado !== "cerrado") hist.push({ estado:r.estado, fecha:r.created_at });
+  if(r.cerrado_at) hist.push({ estado:"cerrado", fecha:r.cerrado_at });
+  return {
+    _real: true,
+    id: r.id,
+    cliente: r.cliente_nombre || "—",
+    telefono: r.cliente_telefono || "",
+    averia: r.tipo_averia || "—",
+    zona: r.zona || "",
+    urgencia: r.urgencia || "baja",
+    estado: r.estado || "nuevo",
+    tecnicoId: r.tecnico_id || null,
+    tecnicoNombre: r.tecnico_asignado || "Sin asignar",
+    resenaEnviada: !!r.resena_enviada,
+    fechaCreacion: r.created_at,
+    cerradoAt: r.cerrado_at || null,
+    clienteId: null,   // los avisos reales no enlazan con la cartera local de Clientes
+    historial: hist
+  };
+}
+
+async function cargarTicketsReales(){
+  if(!sesion) return;
+  ticketsEstado = "loading"; ticketsErrorMsg = "";
+  pintarTicketsViews();
+  try{
+    const data = await ticketsApi({ action:"list", usuario: usuarioLogin() });
+    ticketsReal = (data.tickets || []).map(mapTicketReal);
+    ticketsEstado = "ok";
+  }catch(e){
+    ticketsReal = []; ticketsEstado = "error"; ticketsErrorMsg = e.message || "error";
+  }
+  pintarTicketsViews();
+}
+
+// Repinta las vistas que consumen datos reales, según el estado actual.
+function pintarTicketsViews(){
+  if(!sesion) return;
+  renderTecnicoDashboard();
+  if(sesion.rol === "gerente" && gerenciaUnlocked){
+    poblarFiltroTecnicosReal();
+    renderGlobalTable();
+  }
+}
+
 function renderTecnicoDashboard(){
-  const mine = misTickets();
+  const mine = ticketsReal;
   const hoy = new Date().toISOString().slice(0,10);
   const esteMes = new Date().toISOString().slice(0,7);
+  const abierto = t => t.estado !== "cerrado" && t.estado !== "cancelado";
 
-  const activosHoy = mine.filter(t => t.estado !== "cerrado" && t.fechaCreacion.slice(0,10) === hoy).length;
-  const pendientes = mine.filter(t => t.estado !== "cerrado").length;
-  const cerradosMes = mine.filter(t => t.estado === "cerrado" && cierreFecha(t).slice(0,7) === esteMes).length;
-  const horas = mine.reduce((a,t) => a + (Number(t.horas)||0), 0);
+  const activosHoy  = mine.filter(t => abierto(t) && String(t.fechaCreacion||"").slice(0,10) === hoy).length;
+  const pendientes  = mine.filter(abierto).length;
+  const cerradosMes = mine.filter(t => t.estado === "cerrado" && String(t.cerradoAt||"").slice(0,7) === esteMes).length;
+  const total       = mine.length;
 
   $("#kpiRow").innerHTML = `
     ${kpi("Activos hoy", activosHoy, "p", '<path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/>')}
     ${kpi("Pendientes", pendientes, "gold", '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>')}
     ${kpi("Cerrados este mes", cerradosMes, "g", '<path d="M20 6L9 17l-5-5"/>')}
-    ${kpi("Horas registradas", horas % 1 === 0 ? horas : horas.toFixed(1), "p", '<circle cx="12" cy="12" r="9"/><path d="M12 8v4l2.5 2.5"/>')}
+    ${kpi("Total avisos", total, "p", '<path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/>')}
   `;
 
-  // subtítulo según rol
   $("#ticketsTitle").textContent = "Mis tickets";
-  $("#ticketsSub").textContent = "Avisos asignados a " + sesion.nombre + " · Zonas: " + (getUser(sesion.id).zonas.join(", "));
+  $("#ticketsSub").textContent = sesion.rol === "gerente"
+    ? "Todos los avisos del taller (datos reales)"
+    : "Avisos asignados a " + sesion.nombre + " · Zonas: " + (getUser(sesion.id).zonas.join(", "));
 
   renderTechTicketList();
 }
@@ -977,38 +1059,39 @@ function kpi(label, val, accent, iconPath){
   </div>`;
 }
 
+function ticketPlaceholder(msg, err){
+  return `<div class="empty card${err?' err':''}">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 12h8M8 16h5M8 8h8"/></svg>
+    <div>${esc(msg)}</div></div>`;
+}
+
 function renderTechTicketList(){
+  const cont = $("#techTicketList");
+  if(ticketsEstado === "loading" || ticketsEstado === "idle"){ cont.innerHTML = ticketPlaceholder("Cargando avisos…"); return; }
+  if(ticketsEstado === "error"){ cont.innerHTML = ticketPlaceholder("No se pudieron cargar los avisos. " + ticketsErrorMsg, true); return; }
+
   const filtro = $("#fEstadoTec").value;
-  let mine = misTickets();
+  let mine = ticketsReal.slice();
   if(filtro) mine = mine.filter(t => t.estado === filtro);
   mine.sort((a,b) => new Date(b.fechaCreacion) - new Date(a.fechaCreacion));
 
-  const cont = $("#techTicketList");
-  if(mine.length === 0){
-    cont.innerHTML = `<div class="empty card">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 12h8M8 16h5M8 8h8"/></svg>
-      <div>No tienes tickets${filtro?" en este estado":""}.</div>
-    </div>`;
-    return;
-  }
+  if(mine.length === 0){ cont.innerHTML = ticketPlaceholder("No tienes avisos" + (filtro?" en este estado":"") + "."); return; }
   cont.innerHTML = mine.map(t => ticketRow(t)).join("");
-  $$("[data-ticket]", cont).forEach(el => el.addEventListener("click", () => abrirTicket(el.dataset.ticket)));
-  wireClienteLinks(cont);
+  $$("[data-ticket]", cont).forEach(el => el.addEventListener("click", () => abrirTicketReal(el.dataset.ticket)));
 }
 
 function ticketRow(t){
-  return `<div class="card ticket" data-ticket="${t.id}">
+  return `<div class="card ticket" data-ticket="${esc(t.id)}">
     <div class="t-main">
       <div class="t-top">
-        <span class="t-cliente${t.clienteId?' cliente-link':''}"${t.clienteId?` data-ficha="${t.clienteId}"`:''}>${esc(t.cliente)}</span>
+        <span class="t-cliente">${esc(t.cliente)}</span>
         ${badgeUrg(t.urgencia)}
       </div>
       <div class="t-averia">${esc(t.averia)}</div>
       <div class="t-meta">
-        <span>#${esc(t.id)}</span>
+        <span>#${esc(avisoNum(t))}</span>
         <span>Zona ${esc(t.zona)}</span>
         <span>${esc(t.telefono)}</span>
-        ${t.estado==="agendado" && t.agendaDia ? '<span style="color:#6fb4ff">📅 '+esc(fmtFechaCorta(t.agendaDia))+' · '+esc(t.agendaHora)+'</span>' : ''}
       </div>
     </div>
     <div class="t-right">
@@ -1018,6 +1101,79 @@ function ticketRow(t){
   </div>`;
 }
 $("#fEstadoTec").addEventListener("change", renderTechTicketList);
+
+/* --- ficha + acciones de estado de un ticket REAL --- */
+function accionesReales(t){
+  const acc = [];
+  if(t.estado === "cerrado" || t.estado === "cancelado") return acc;
+  if(t.estado === "nuevo" || t.estado === "asignado") acc.push({ label:"Marcar en curso", cls:"", act:"en_curso" });
+  if(t.estado !== "atendido") acc.push({ label:"Marcar atendido", cls:"btn-g", act:"atendido" });
+  acc.push({ label:"Cerrar ticket", cls:"btn-danger", act:"cerrar" });
+  return acc;
+}
+
+function abrirTicketReal(id){
+  const t = ticketsReal.find(x => x.id === id);
+  if(!t) return;
+
+  const histHtml = (t.historial||[]).map(h =>
+    `<div class="hist-item"><div class="hist-dot"></div><div class="hc"><b>${esc(ESTADO_LABEL[h.estado]||h.estado)}</b><span>${esc(fmtFecha(h.fecha))}</span></div></div>`
+  ).join("");
+
+  const acciones = accionesReales(t);
+  const accHtml = acciones.length
+    ? `<div class="actions-row">${acciones.map(a=>`<button class="btn btn-sm ${a.cls}" data-act="${a.act}">${a.label}</button>`).join("")}</div>`
+    : `<div class="actions-row"><span style="color:var(--muted);font-size:13px">Ticket ${esc(ESTADO_LABEL[t.estado]||t.estado)} — sin acciones disponibles.</span></div>`;
+
+  const back = openModal(`
+    <div class="modal wide">
+      <div class="modal-head">
+        <div>
+          <h3>${esc(t.cliente)}</h3>
+          <p>Aviso #${esc(avisoNum(t))} · ${badgeEstado(t.estado)}</p>
+        </div>
+        <button class="modal-x" data-close>&times;</button>
+      </div>
+      <div class="modal-body">
+        <div id="tkErr" class="login-err hidden"></div>
+        <div class="detail-grid">
+          <div class="di"><div class="l">Teléfono</div><div class="v">${esc(t.telefono||"—")}</div></div>
+          <div class="di"><div class="l">Zona</div><div class="v">${esc(t.zona||"—")}</div></div>
+          <div class="di"><div class="l">Urgencia</div><div class="v">${badgeUrg(t.urgencia)}</div></div>
+          <div class="di"><div class="l">Fecha creación</div><div class="v">${esc(fmtFecha(t.fechaCreacion))}</div></div>
+          <div class="di" style="grid-column:1/-1"><div class="l">Avería</div><div class="v">${esc(t.averia)}</div></div>
+          <div class="di"><div class="l">Técnico</div><div class="v">${esc(t.tecnicoNombre)}</div></div>
+          <div class="di"><div class="l">Reseña</div><div class="v">${t.resenaEnviada?'<span style="color:var(--g)">Enviada</span>':'<span style="color:var(--muted)">Pendiente</span>'}</div></div>
+        </div>
+        <div class="l" style="font-size:12px;color:var(--muted);margin-bottom:6px">Historial de estados</div>
+        <div class="hist">${histHtml}</div>
+        ${accHtml}
+      </div>
+    </div>
+  `);
+
+  back.querySelector("[data-close]").addEventListener("click", ()=>closeModal(back));
+
+  back.querySelectorAll("[data-act]").forEach(btn=>{
+    btn.addEventListener("click", async ()=>{
+      const act = btn.dataset.act;
+      const nuevo = act === "cerrar" ? "cerrado" : act;
+      const err = back.querySelector("#tkErr");
+      back.querySelectorAll("[data-act]").forEach(b=>b.disabled = true);
+      err.classList.add("hidden");
+      try{
+        await ticketsApi({ action:"estado", ticket_id:t.id, estado:nuevo, usuario: usuarioLogin() });
+        closeModal(back);
+        if(nuevo === "cerrado") toast("Ticket cerrado", "Enlace de reseña enviado al técnico.", "ok", "✅", 6000);
+        else toast("Estado actualizado", "Aviso #"+avisoNum(t)+" → "+(ESTADO_LABEL[nuevo]||nuevo), "info", "↻");
+        cargarTicketsReales();
+      }catch(e){
+        err.textContent = "No se pudo cambiar el estado: " + e.message; err.classList.remove("hidden");
+        back.querySelectorAll("[data-act]").forEach(b=>b.disabled = false);
+      }
+    });
+  });
+}
 
 /* ==========================================================
    FICHA DE TICKET  (detalle + acciones de estado)
@@ -1304,45 +1460,50 @@ $$(".subtab").forEach(tab => tab.addEventListener("click", ()=>{
 }));
 
 function renderGerencia(){
-  poblarFiltroTecnicos();
-  renderGlobalTable();
-  renderTecGrid();
-  renderGraficas();
-  renderAccesos();
+  cargarTicketsReales();   // Panel global (gerente) con datos reales · repinta también Mis tickets
+  renderTecGrid();         // Gestión técnicos (datos reales)
+  renderGraficas();        // Rendimiento (stats demo local)
+  renderAccesos();         // Log de accesos (demo local)
 }
 
-/* --- 1. PANEL GLOBAL --- */
-function poblarFiltroTecnicos(){
-  const sel = $("#fTecnico");
+/* --- 1. PANEL GLOBAL (datos reales de tickets) --- */
+// Opciones del filtro de técnico derivadas de los tickets reales cargados.
+function poblarFiltroTecnicosReal(){
+  const sel = $("#fTecnico"); if(!sel) return;
   const val = sel.value;
+  const seen = new Map();
+  ticketsReal.forEach(t=>{ if(t.tecnicoId && !seen.has(t.tecnicoId)) seen.set(t.tecnicoId, t.tecnicoNombre); });
   sel.innerHTML = '<option value="">Todos los técnicos</option>' +
-    usuarios.filter(u=>u.rol==="tecnico").map(u=>`<option value="${u.id}">${esc(u.nombre)}</option>`).join("") +
+    Array.from(seen.entries()).map(([id,nom])=>`<option value="${esc(id)}">${esc(nom)}</option>`).join("") +
     '<option value="__none">Sin asignar</option>';
   sel.value = val;
 }
+
 function renderGlobalTable(){
+  const body = $("#globalTableBody");
+  if(ticketsEstado === "loading" || ticketsEstado === "idle"){ body.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:34px">Cargando avisos…</td></tr>'; return; }
+  if(ticketsEstado === "error"){ body.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#ff8f8f;padding:34px">Error al cargar los avisos. '+esc(ticketsErrorMsg)+'</td></tr>'; return; }
+
   const fT = $("#fTecnico").value, fE = $("#fEstadoG").value, fZ = $("#fZona").value;
-  let rows = tickets.slice();
+  let rows = ticketsReal.slice();
   if(fT === "__none") rows = rows.filter(t=>!t.tecnicoId);
   else if(fT) rows = rows.filter(t=>t.tecnicoId===fT);
   if(fE) rows = rows.filter(t=>t.estado===fE);
   if(fZ) rows = rows.filter(t=>t.zona===fZ);
   rows.sort((a,b)=> new Date(b.fechaCreacion)-new Date(a.fechaCreacion));
 
-  const body = $("#globalTableBody");
-  if(rows.length===0){ body.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:34px">Sin tickets para estos filtros.</td></tr>'; return; }
+  if(rows.length===0){ body.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:34px">Sin avisos para estos filtros.</td></tr>'; return; }
   body.innerHTML = rows.map(t=>`
-    <tr data-ticket="${t.id}" style="cursor:pointer">
-      <td><b class="${t.clienteId?'cliente-link':''}"${t.clienteId?` data-ficha="${t.clienteId}"`:''}>${esc(t.cliente)}</b><br><span style="color:var(--muted);font-size:12px">#${esc(t.id)}</span></td>
+    <tr data-ticket="${esc(t.id)}" style="cursor:pointer">
+      <td><b>${esc(t.cliente)}</b><br><span style="color:var(--muted);font-size:12px">#${esc(avisoNum(t))}</span></td>
       <td style="max-width:220px">${esc(t.averia)}</td>
       <td>${esc(t.zona)}</td>
-      <td>${esc(nombreTecnico(t.tecnicoId))}</td>
+      <td>${esc(t.tecnicoNombre)}</td>
       <td>${badgeEstado(t.estado)}</td>
       <td style="white-space:nowrap">${esc(fmtFechaCorta(t.fechaCreacion))}</td>
-      <td class="num">${t.horas>0?t.horas+" h":"—"}</td>
+      <td class="num">${t.resenaEnviada?'<span style="color:var(--g)">✓</span>':'—'}</td>
     </tr>`).join("");
-  $$("[data-ticket]", body).forEach(el=>el.addEventListener("click",()=>abrirTicket(el.dataset.ticket)));
-  wireClienteLinks(body);
+  $$("[data-ticket]", body).forEach(el=>el.addEventListener("click",()=>abrirTicketReal(el.dataset.ticket)));
 }
 ["#fTecnico","#fEstadoG","#fZona"].forEach(s=>$(s).addEventListener("change", renderGlobalTable));
 
@@ -1531,7 +1692,7 @@ function modalNuevoTecnico(){
     usuarios.push(nuevo);
     closeModal(back);
     renderTecGrid();
-    poblarFiltroTecnicos();
+    poblarFiltroTecnicosReal();
     renderGraficas();
     toast("Técnico dado de alta", nombre+" ya puede iniciar sesión.", "ok","✓");
   });
