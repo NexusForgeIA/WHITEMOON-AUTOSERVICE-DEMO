@@ -271,6 +271,11 @@ td.num{font-variant-numeric:tabular-nums;font-weight:600}
 .tec-card .tc-rows .r .lbl{color:var(--muted)}
 .tec-card .tc-rows .r .val{font-weight:500;text-align:right}
 .tec-actions{display:flex;gap:8px;flex-wrap:wrap;padding-top:14px;border-top:1px solid var(--line)}
+.scope-note{font-size:13px;color:var(--muted);background:rgba(245,200,66,.06);border:1px solid rgba(245,200,66,.22);border-radius:10px;padding:11px 14px;margin-bottom:18px;line-height:1.45}
+.tec-loading{grid-column:1/-1;text-align:center;color:var(--muted);padding:40px 20px;font-size:14px}
+.tec-loading.err{color:var(--danger,#ff6b6b)}
+.cmb-ok{color:var(--g);font-weight:600}
+.cmb-no{color:var(--muted)}
 
 /* charts */
 .charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px}
@@ -560,6 +565,7 @@ td.num{font-variant-numeric:tabular-nums;font-weight:600}
 
       <!-- G: TECNICOS -->
       <div class="gsec" id="gsec-tecnicos">
+        <p class="scope-note">Los cambios se guardan en la base de datos real y afectan a la asignación y notificaciones de nuevos avisos.</p>
         <div style="display:flex;justify-content:flex-end;margin-bottom:18px">
           <button class="btn btn-primary btn-sm" id="btnNuevoTec">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
@@ -1340,39 +1346,114 @@ function renderGlobalTable(){
 }
 ["#fTecnico","#fEstadoG","#fZona"].forEach(s=>$(s).addEventListener("change", renderGlobalTable));
 
-/* --- 2. GESTIÓN TÉCNICOS --- */
-function renderTecGrid(){
+/* --- 2. GESTIÓN TÉCNICOS (datos reales vía Edge Function) --- */
+const TECNICOS_FN = "https://mlaqtniujnvfxcvcourm.supabase.co/functions/v1/autoservice-tecnicos";
+let tecnicosReal = [];
+
+async function tecnicosApi(payload){
+  const res = await fetch(TECNICOS_FN, {
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body: JSON.stringify(payload)
+  });
+  const data = await res.json().catch(()=>null);
+  if(!res.ok || !data || data.ok === false){
+    throw new Error((data && data.error) || ("HTTP " + res.status));
+  }
+  return data;
+}
+
+async function renderTecGrid(){
   const grid = $("#tecGrid");
-  const tecs = usuarios.filter(u=>u.rol==="tecnico");
-  grid.innerHTML = tecs.map(u=>{
-    const cerrados = tickets.filter(t=>t.tecnicoId===u.id && t.estado==="cerrado").length;
+  grid.innerHTML = '<div class="tec-loading">Cargando técnicos…</div>';
+  try{
+    const data = await tecnicosApi({ action:"list" });
+    tecnicosReal = (data.tecnicos || []).filter(t => t.rol === "tecnico");
+    pintarTecGrid();
+  }catch(err){
+    grid.innerHTML = '<div class="tec-loading err">No se pudieron cargar los técnicos. ' + esc(err.message) + '</div>';
+  }
+}
+
+function pintarTecGrid(){
+  const grid = $("#tecGrid");
+  if(!tecnicosReal.length){ grid.innerHTML = '<div class="tec-loading">No hay técnicos.</div>'; return; }
+  grid.innerHTML = tecnicosReal.map(u=>{
+    const zonas = (u.zonas || []).join(", ") || "—";
+    const esp   = (u.especialidades || []).join(", ") || "—";
     return `<div class="card tec-card">
       <div class="tc-head">
         <div class="tc-id">
           <div class="avatar">${iniciales(u.nombre)}</div>
-          <div><b>${esc(u.nombre)}</b><span>@${esc(u.usuario)}</span></div>
+          <div><b>${esc(u.nombre)}</b><span>@${esc(u.usuario)} · ${u.rol==="gerente"?"Gerente":"Técnico"}</span></div>
         </div>
         ${u.activo?'<span class="badge badge-activo">Activo</span>':'<span class="badge badge-inactivo">Inactivo</span>'}
       </div>
       <div class="tc-rows">
-        <div class="r"><span class="lbl">Teléfono</span><span class="val">${esc(u.tel||"—")}</span></div>
-        <div class="r"><span class="lbl">WhatsApp</span><span class="val">${esc(u.wa_number||"—")}</span></div>
-        <div class="r"><span class="lbl">Zonas</span><span class="val">${u.zonas.join(", ")||"—"}</span></div>
-        <div class="r"><span class="lbl">Tickets cerrados</span><span class="val">${cerrados}</span></div>
-        <div class="r"><span class="lbl">Último acceso</span><span class="val">${esc(fmtFecha(u.ultimoAcceso))}</span></div>
+        <div class="r"><span class="lbl">Teléfono WhatsApp</span><span class="val">${esc(u.wa_number||"—")}</span></div>
+        <div class="r"><span class="lbl">Zonas</span><span class="val">${esc(zonas)}</span></div>
+        <div class="r"><span class="lbl">Especialidades</span><span class="val">${esc(esp)}</span></div>
+        <div class="r"><span class="lbl">CallMeBot</span><span class="val">${u.tiene_apikey?'<span class="cmb-ok">Configurado</span>':'<span class="cmb-no">Sin configurar</span>'}</span></div>
       </div>
       <div class="tec-actions">
-        ${u.activo
-          ? `<button class="btn btn-sm btn-danger" data-baja="${u.id}">Dar de baja</button>`
-          : `<button class="btn btn-sm btn-g" data-alta="${u.id}">Reactivar</button>`}
-        <button class="btn btn-sm" data-pass="${u.id}">Cambiar contraseña</button>
+        <button class="btn btn-sm btn-primary" data-editar="${esc(u.id)}">Editar</button>
       </div>
     </div>`;
   }).join("");
 
-  $$("[data-baja]", grid).forEach(b=>b.addEventListener("click",()=>{ toggleActivo(b.dataset.baja,false); }));
-  $$("[data-alta]", grid).forEach(b=>b.addEventListener("click",()=>{ toggleActivo(b.dataset.alta,true); }));
-  $$("[data-pass]", grid).forEach(b=>b.addEventListener("click",()=>{ modalCambiarPass(b.dataset.pass); }));
+  $$("[data-editar]", grid).forEach(b=>b.addEventListener("click",()=>modalEditarTecnico(b.dataset.editar)));
+}
+
+function modalEditarTecnico(id){
+  const u = tecnicosReal.find(t => t.id === id); if(!u) return;
+  const back = openModal(`
+    <div class="modal wide">
+      <div class="modal-head"><div><h3>Editar técnico</h3><p>${esc(u.nombre)} · @${esc(u.usuario)}</p></div><button class="modal-x" data-close>&times;</button></div>
+      <div class="modal-body">
+        <div id="etErr" class="login-err hidden"></div>
+        <div class="detail-grid" style="margin-bottom:14px">
+          <div class="field" style="margin:0"><label>Nombre</label><input id="etNombre" type="text" value="${esc(u.nombre)}"></div>
+          <div class="field" style="margin:0"><label>Teléfono WhatsApp</label><input id="etWa" type="text" value="${esc(u.wa_number||"")}" placeholder="34XXXXXXXXX"></div>
+          <div class="field" style="margin:0"><label>Apikey CallMeBot</label><input id="etApi" type="password" placeholder="Dejar vacío para no cambiar" autocomplete="new-password"></div>
+          <div class="field" style="margin:0"><label>URL GMB</label><input id="etGmb" type="text" value="${esc(u.gmb_url||"")}" placeholder="https://maps.app.goo.gl/…"></div>
+          <div class="field" style="margin:0"><label>Zonas (separadas por coma)</label><input id="etZonas" type="text" value="${esc((u.zonas||[]).join(", "))}"></div>
+          <div class="field" style="margin:0"><label>Especialidades (separadas por coma)</label><input id="etEsp" type="text" value="${esc((u.especialidades||[]).join(", "))}"></div>
+        </div>
+        <label class="check" style="width:max-content"><input type="checkbox" id="etActivo" ${u.activo?"checked":""}>Técnico activo</label>
+      </div>
+      <div class="modal-foot"><button class="btn btn-ghost btn-sm" data-close>Cancelar</button><button class="btn btn-primary btn-sm" id="etConfirm">Guardar cambios</button></div>
+    </div>`);
+  back.querySelectorAll("[data-close]").forEach(b=>b.addEventListener("click",()=>closeModal(back)));
+
+  back.querySelector("#etConfirm").addEventListener("click", async ()=>{
+    const btn = back.querySelector("#etConfirm");
+    const err = back.querySelector("#etErr");
+    const nombre = back.querySelector("#etNombre").value.trim();
+    if(!nombre){ err.textContent = "El nombre es obligatorio."; err.classList.remove("hidden"); return; }
+    const toArr = s => s.split(",").map(x=>x.trim()).filter(Boolean);
+    const campos = {
+      nombre,
+      wa_number: back.querySelector("#etWa").value.trim(),
+      zonas: toArr(back.querySelector("#etZonas").value),
+      especialidades: toArr(back.querySelector("#etEsp").value),
+      gmb_url: back.querySelector("#etGmb").value.trim(),
+      activo: back.querySelector("#etActivo").checked
+    };
+    const apik = back.querySelector("#etApi").value.trim();
+    if(apik) campos.callmebot_apikey = apik;   // vacío → no se envía → no se borra
+
+    btn.disabled = true; btn.textContent = "Guardando…";
+    err.classList.add("hidden");
+    try{
+      await tecnicosApi({ action:"update", id:u.id, campos });
+      closeModal(back);
+      toast("Técnico actualizado", nombre + " se guardó en la base de datos real.", "ok","✓");
+      renderTecGrid();
+    }catch(e){
+      err.textContent = "No se pudo guardar: " + e.message; err.classList.remove("hidden");
+      btn.disabled = false; btn.textContent = "Guardar cambios";
+    }
+  });
 }
 
 function toggleActivo(id, activo){
