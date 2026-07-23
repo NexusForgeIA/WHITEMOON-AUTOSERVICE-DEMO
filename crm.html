@@ -636,10 +636,10 @@ const ZONAS = ["Norte", "Sur", "Este", "Oeste", "Majadahonda", "Las Rozas", "Boa
 let usuarios = [
   { id:"t1", usuario:"carlos", pass:"demo", nombre:"Carlos Ramos", rol:"tecnico",
     zonas:ZONAS.slice(), activo:true, tel:"611 111 111",
-    wa_number:"34611111111", apikey:"", ultimoAcceso:"2026-07-06T08:12:00" },
+    wa_number:"34611111111", ultimoAcceso:"2026-07-06T08:12:00" },
   { id:"g1", usuario:"gerente", pass:"demo", nombre:"Marta Serrano", rol:"gerente",
     zonas:ZONAS.slice(), activo:true, tel:"600 111 222",
-    wa_number:"34600111222", apikey:"", ultimoAcceso:"2026-07-06T07:30:00" }
+    wa_number:"34600111222", ultimoAcceso:"2026-07-06T07:30:00" }
 ];
 
 // Log de accesos (se rellena en login; histórico demo mínimo)
@@ -1111,7 +1111,7 @@ function abrirTicketReal(id){
       try{
         await ticketsApi({ action:"estado", ticket_id:t.id, estado:nuevo, usuario: usuarioLogin() });
         closeModal(back);
-        if(nuevo === "cerrado") toast("Ticket cerrado", "Enlace de reseña enviado al técnico.", "ok", "✅", 6000);
+        if(nuevo === "cerrado") toast("Ticket cerrado", "Aviso de cierre enviado por Telegram con el enlace de reseña.", "ok", "✅", 6000);
         else toast("Estado actualizado", "Aviso #"+avisoNum(t)+" → "+(ESTADO_LABEL[nuevo]||nuevo), "info", "↻");
         cargarTicketsReales();
       }catch(e){
@@ -1395,7 +1395,7 @@ function pintarTecGrid(){
         <div class="r"><span class="lbl">Teléfono WhatsApp</span><span class="val">${esc(u.wa_number||"—")}</span></div>
         <div class="r"><span class="lbl">Zonas</span><span class="val">${esc(zonas)}</span></div>
         <div class="r"><span class="lbl">Especialidades</span><span class="val">${esc(esp)}</span></div>
-        <div class="r"><span class="lbl">CallMeBot</span><span class="val">${u.tiene_apikey?'<span class="cmb-ok">Configurado</span>':'<span class="cmb-no">Sin configurar</span>'}</span></div>
+        <div class="r"><span class="lbl">Avisos</span><span class="val"><span class="cmb-ok">Telegram (server-side)</span></span></div>
       </div>
       <div class="tec-actions">
         <button class="btn btn-sm btn-primary" data-editar="${esc(u.id)}">Editar</button>
@@ -1416,7 +1416,6 @@ function modalEditarTecnico(id){
         <div class="detail-grid" style="margin-bottom:14px">
           <div class="field" style="margin:0"><label>Nombre</label><input id="etNombre" type="text" value="${esc(u.nombre)}"></div>
           <div class="field" style="margin:0"><label>Teléfono WhatsApp</label><input id="etWa" type="text" value="${esc(u.wa_number||"")}" placeholder="34XXXXXXXXX"></div>
-          <div class="field" style="margin:0"><label>Apikey CallMeBot</label><input id="etApi" type="password" placeholder="Dejar vacío para no cambiar" autocomplete="new-password"></div>
           <div class="field" style="margin:0"><label>URL GMB</label><input id="etGmb" type="text" value="${esc(u.gmb_url||"")}" placeholder="https://maps.app.goo.gl/…"></div>
           <div class="field" style="margin:0"><label>Zonas (separadas por coma)</label><input id="etZonas" type="text" value="${esc((u.zonas||[]).join(", "))}"></div>
           <div class="field" style="margin:0"><label>Especialidades (separadas por coma)</label><input id="etEsp" type="text" value="${esc((u.especialidades||[]).join(", "))}"></div>
@@ -1441,9 +1440,6 @@ function modalEditarTecnico(id){
       gmb_url: back.querySelector("#etGmb").value.trim(),
       activo: back.querySelector("#etActivo").checked
     };
-    const apik = back.querySelector("#etApi").value.trim();
-    if(apik) campos.callmebot_apikey = apik;   // vacío → no se envía → no se borra
-
     btn.disabled = true; btn.textContent = "Guardando…";
     err.classList.add("hidden");
     try{
@@ -1497,7 +1493,6 @@ function modalNuevoTecnico(){
           <div class="field" style="margin:0"><label>Nombre completo</label><input id="ntNombre" type="text" placeholder="Nombre y apellidos"></div>
           <div class="field" style="margin:0"><label>Teléfono</label><input id="ntTel" type="text" placeholder="6XX XXX XXX"></div>
           <div class="field" style="margin:0"><label>WhatsApp (wa_number)</label><input id="ntWa" type="text" placeholder="346XXXXXXXX"></div>
-          <div class="field" style="margin:0"><label>CallMeBot apikey</label><input id="ntApi" type="text" placeholder="123456"></div>
           <div class="field" style="margin:0"><label>Usuario CRM</label><input id="ntUser" type="text" placeholder="nombre" autocomplete="off"></div>
           <div class="field" style="margin:0"><label>Contraseña CRM</label><input id="ntPass" type="text" placeholder="contraseña" autocomplete="off"></div>
         </div>
@@ -1527,7 +1522,6 @@ function modalNuevoTecnico(){
       zonas, activo:true,
       tel: back.querySelector("#ntTel").value.trim(),
       wa_number: back.querySelector("#ntWa").value.trim(),
-      apikey: back.querySelector("#ntApi").value.trim(),
       ultimoAcceso:null
     };
     usuarios.push(nuevo);
